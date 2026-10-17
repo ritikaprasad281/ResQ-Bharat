@@ -168,10 +168,11 @@ def get_agri_loss_summary() -> dict:
 
 
 @router.get("/imagery")
-def get_imagery(pilot: str) -> dict:
+def get_imagery(pilot: str, refresh: bool = False) -> dict:
     """Before/after Sentinel-2 true-colour composites for the two analysis
-    windows. Served live (thumbnail URLs are time-limited, so not cached)."""
-    return compute_imagery(_aoi(pilot))
+    windows. Rendered once, stored in Cloud Storage, and served from a stable
+    public URL cached in Firestore. Pass ``refresh=true`` to re-render."""
+    return compute_imagery(_aoi(pilot), refresh=refresh)
 
 
 @router.get("/risk")

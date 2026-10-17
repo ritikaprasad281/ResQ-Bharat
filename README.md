@@ -6,6 +6,8 @@ AI-powered, satellite-grounded flood intelligence for **river basins across Indi
 
 ResQ Bharat fuses satellite radar, terrain, built-up surface, cropland, population and live weather into **flood-prone zone maps**, a **transparent live flood-risk score**, **rainfall forecasts**, **floodplain-development monitoring**, **agricultural (crop) loss estimates**, and a **multilingual Gemini assistant** — covering **100 study areas across all 28 states and 8 union territories**.
 
+> ⚠️ AI-generated analysis — validate before operational use. This is an early-warning decision-support tool, not a guaranteed forecast.
+
 ---
 
 ## Required stack (Google AI Builder Cup)
@@ -16,6 +18,7 @@ ResQ Bharat fuses satellite radar, terrain, built-up surface, cropland, populati
 | **Cloud Run** | Hosts the FastAPI backend (satellite + weather + AI compute). |
 | **Firestore** | Cross-instance cache for flood-zone GeoJSON, susceptibility, rankings and model outputs. |
 | **Firebase Hosting** | Serves the React single-page app. |
+| **Cloud Storage** | Stores pre-rendered before/after satellite composites so the Floodplain Development view loads from stable public URLs instead of recomputing Earth Engine thumbnails. |
 | **Pub/Sub** | Publishes citizen flood-alert dispatches. |
 
 Plus **Google Earth Engine** for all server-side geospatial analysis (no local GIS stack required) and **Open-Meteo** for live/forecast rainfall.
@@ -56,6 +59,7 @@ FastAPI (Cloud Run · asia-south1)
         ├── Open-Meteo           → live/forecast rainfall (memoized)
         ├── Gemini               → briefings, grounded chat, multilingual emergency help
         ├── Pub/Sub              → citizen alert dispatch
+        ├── Cloud Storage        → pre-rendered before/after satellite composites
         └── Firestore            → cached GeoJSON, susceptibility, rankings, model outputs
 ```
 

@@ -6,8 +6,6 @@ AI-powered, satellite-grounded flood intelligence for **river basins across Indi
 
 ResQ Bharat fuses satellite radar, terrain, built-up surface, cropland, population and live weather into **flood-prone zone maps**, a **transparent live flood-risk score**, **rainfall forecasts**, **floodplain-development monitoring**, **agricultural (crop) loss estimates**, and a **multilingual Gemini assistant** — covering **100 study areas across all 28 states and 8 union territories**.
 
-> ⚠️ AI-generated analysis — validate before operational use. This is an early-warning decision-support tool, not a guaranteed forecast.
-
 ---
 
 ## Required stack (Google AI Builder Cup)

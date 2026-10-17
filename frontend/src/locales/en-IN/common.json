@@ -1,0 +1,380 @@
+{
+  "app": {
+    "name": "ResQ Bharat",
+    "tagline": "India Flood Intelligence"
+  },
+  "nav": {
+    "home": "Home",
+    "floodIntelligence": "Flood Intelligence",
+    "floodplainDevelopment": "Floodplain Development",
+    "agriLoss": "Crop Loss",
+    "report": "Report / Respond",
+    "aiHelp": "AI Help",
+    "floodSafety": "Flood Safety",
+    "about": "About",
+    "reportHazard": "Report hazard",
+    "liveMonitoring": "Live monitoring",
+    "menu": "Menu"
+  },
+  "actions": {
+    "search": "Search",
+    "send": "Send",
+    "copy": "Copy",
+    "copied": "Copied",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "close": "Close",
+    "open": "Open",
+    "edit": "Edit",
+    "save": "Save",
+    "reset": "Reset",
+    "viewMap": "View map",
+    "openMap": "Open full map",
+    "learnMore": "Learn more"
+  },
+  "state": {
+    "loading": "Loading…",
+    "updated": "Updated {{time}}",
+    "noData": "No data available",
+    "error": "Something went wrong. Please try again.",
+    "empty": "Nothing to show yet",
+    "provisional": "Some rainfall days are missing — treat this as provisional."
+  },
+  "risk": {
+    "low": "Low",
+    "medium": "Moderate",
+    "high": "High",
+    "severe": "Very high",
+    "modelledProbability": "modelled probability",
+    "relativeIndexNote": "Relative index, not a calibrated probability.",
+    "coverageLive": "Live coverage",
+    "coverageModelled": "Modelled coverage",
+    "coveragePartial": "Partial coverage"
+  },
+  "language": {
+    "select": "Select language",
+    "search": "Search language…",
+    "interfaceLanguage": "Website language",
+    "responseLanguage": "Answer in",
+    "followWebsite": "Follow website language",
+    "autoDetect": "Auto-detect from my speech",
+    "detected": "Detected",
+    "change": "Change",
+    "ui": "Interface",
+    "voice": "Voice",
+    "speech": "Speech",
+    "available": "available",
+    "notAvailable": "not available",
+    "voiceUnverified": "voice support unverified"
+  },
+  "voice": {
+    "startRecording": "Tap to speak",
+    "stop": "Stop",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "listening": "Listening…",
+    "requestingPermission": "Requesting microphone…",
+    "processing": "Processing speech…",
+    "transcriptReady": "Review your message before sending",
+    "permissionDenied": "Microphone permission denied. You can still type your message.",
+    "notSupported": "Voice input isn't supported in this browser. Please type instead.",
+    "unsupportedLanguage": "Speech recognition may not fully support this language. You can type instead.",
+    "networkError": "Speech service error. Please try again or type your message.",
+    "send": "Send",
+    "playResponse": "Play answer aloud",
+    "stopPlayback": "Stop audio",
+    "speaking": "Speaking…",
+    "ttsUnavailable": "Audio isn't available for this language on this device. The written answer stays above.",
+    "autoSpeak": "Auto-play answers",
+    "recording": "Recording",
+    "micLabel": "Voice input",
+    "audioNote": "Your speech is processed by your browser's speech service to create the transcript."
+  },
+  "ai": {
+    "thinking": "Thinking…",
+    "unavailable": "The assistant is unavailable right now. Please retry shortly.",
+    "placeholder": "Ask about flood risk, safety, or what to do…",
+    "you": "You",
+    "assistant": "Assistant",
+    "respondingIn": "Answering in {{language}}",
+    "online": "online",
+    "offline": "unavailable",
+    "briefing": "Risk briefing",
+    "citizenAlert": "Citizen alert",
+    "suggestions": "Suggestions",
+    "contextNote": "Answers are grounded in the selected location's live risk data and sources.",
+    "prompts": {
+      "summarize": "Summarize the current flood risk.",
+      "rainfallDouble": "What happens if rainfall doubles?",
+      "highestExposure": "Which areas have the highest exposure?",
+      "draftWarning": "Draft a citizen flood warning."
+    }
+  },
+  "aiHelp": {
+    "title": "AI Help",
+    "subtitle": "Emergency flood-safety assistant",
+    "locationPlaceholder": "Your area or locality (optional)",
+    "useMyLocation": "Use my location",
+    "locating": "Getting your location…",
+    "locationDenied": "Location permission denied. You can type your area instead.",
+    "disclaimer": "In a life-threatening emergency call 112 immediately. AI guidance does not replace official instructions.",
+    "emergencyContacts": "Emergency contacts",
+    "officialSources": "Official sources",
+    "quick": {
+      "hospitals": "Nearby hospitals",
+      "shelters": "Shelters",
+      "higherGround": "Safer ground",
+      "roads": "Flooded roads",
+      "contacts": "Emergency contacts",
+      "firstAid": "First aid"
+    }
+  },
+  "home": {
+    "eyebrow": "India Flood Intelligence",
+    "headline": "Know the risk. Protect what matters.",
+    "subhead": "Live, satellite-grounded flood risk, forecasts and preparedness for river basins across India.",
+    "ctaExplore": "Open Flood Intelligence",
+    "ctaReport": "Report a hazard",
+    "searchPlaceholder": "Search a city, river or district…",
+    "builtOn": "Built on",
+    "esriBasemap": "Esri satellite basemap",
+    "layers": "Layers",
+    "layerZones": "Flood-risk zones",
+    "layerStation": "Monitoring point",
+    "floodProneConfidence": "Flood-prone confidence",
+    "mapLoading": "loading…",
+    "mapUnavailable": "unavailable",
+    "conditionsTitle": "Flood conditions across monitored regions",
+    "riskRefreshed": "Risk ranking refreshed {{time}}",
+    "riskRefreshedStale": "Risk ranking last refreshed {{time}} (may be stale)",
+    "checkingConditions": "Checking live conditions…",
+    "riskFeedUnavailable": "Live risk feed unavailable",
+    "view": "View",
+    "stat": {
+      "districts": "Districts monitored",
+      "districtsSub": "Across India's river basins",
+      "rivers": "River basins covered",
+      "riversSub": "Nationwide river systems",
+      "alerts": "Active high / severe alerts",
+      "alertsFeedUnavailable": "Alert feed unavailable",
+      "alertsNotConfirm": "Not a confirmation of safety",
+      "alertsSafe": "All basins within normal range",
+      "alertsTap": "Tap to view affected areas",
+      "ranked": "Locations ranked by live risk",
+      "rankedSub": "Tap to see the ranking"
+    },
+    "regionsTitle": "Regions needing attention",
+    "regionsRanked": "ranked by live risk score · {{time}}",
+    "rankingLoading": "Ranking monitored locations by live flood-risk score…",
+    "table": {
+      "location": "Location",
+      "riskCategory": "Risk category",
+      "latestRainfall": "Latest rainfall",
+      "map": "Map"
+    },
+    "riskScoreNote": "Risk score = 0.35 × terrain susceptibility + 0.65 × rainfall pressure (3-day antecedent + 7-day Open-Meteo forecast). A transparent early-warning indicator, not an official forecast.",
+    "forecastTitle": "Rainfall & risk forecast — {{name}}",
+    "forecastIssued": "issued {{time}}",
+    "forecastDaily": "daily resolution",
+    "subDailyUnavailable": "Sub-daily windows unavailable right now — showing the daily outlook only.",
+    "observed": "Observed",
+    "observedNote": "(last 3 days): {{mm}} mm rainfall · forecast windows are predictions",
+    "forecastLoading": "Loading rainfall & risk forecast…",
+    "next": "Next {{window}}",
+    "alertsTitle": "Live flood alerts",
+    "alertsSub": "high / severe risk right now",
+    "alertRain": "7-day rain {{f7}} mm · 3-day {{a3}} mm",
+    "alertsUnavailableTitle": "Live conditions are temporarily unavailable.",
+    "alertsUnavailableBody": "We could not reach the live rainfall feed. This is not a confirmation that conditions are safe — please check official sources such as IMD and CWC.",
+    "noAlertsTitle": "No locations under high flood alert right now.",
+    "noAlertsBody": "All {{count}} monitored basins are within normal range based on the latest rainfall data{{refreshed}}{{stale}}.",
+    "refreshedParens": " (refreshed {{time}})",
+    "staleSuffix": " — this reading may be stale",
+    "exposureTitle": "Exposure in flood corridors",
+    "exposureSub": "satellite-estimated · 10-year change",
+    "exposure": {
+      "newBuildings": "New buildings in flood corridors",
+      "peopleExposed": "People potentially exposed",
+      "assetValue": "Asset value exposed",
+      "newBuiltUp": "New built-up near banks"
+    },
+    "exposureNote": "Modelled from Google Dynamic World satellite change detection within 500 m of each river channel, across {{count}} analysed locations. These are estimates of exposure, not confirmed damage. AI-generated analysis — please validate.",
+    "communityTitle": "Help your community stay prepared",
+    "communityBody": "Flood resilience is a shared effort. Report what you see, track risk near you, and understand how floodplain development is reshaping the banks.",
+    "community": {
+      "reportHazard": "Report a hazard",
+      "reportHazardDesc": "Flag flooding or waterlogging",
+      "floodIntel": "Flood Intelligence",
+      "floodIntelDesc": "Live flood zones & risk",
+      "aiHelp": "AI Help",
+      "aiHelpDesc": "Emergency guidance & resources",
+      "floodSafety": "Flood Safety",
+      "floodSafetyDesc": "Before, during & after a flood",
+      "floodplain": "Floodplain Development",
+      "floodplainDesc": "New building on the banks",
+      "about": "About & methodology",
+      "aboutDesc": "Sources, limits, responsible AI"
+    },
+    "emergencyTitle": "In an emergency",
+    "emergencyBody": "This portal is for preparedness and situational awareness. During an active flood, always follow official instructions and use these national resources.",
+    "emergency": {
+      "national": "National emergency number",
+      "ndma": "NDMA disaster helpline",
+      "cwc": "CWC flood forecast",
+      "cwcDesc": "Central Water Commission river levels",
+      "imd": "IMD weather warnings",
+      "imdDesc": "India Meteorological Department"
+    },
+    "footer": {
+      "tagline": "Flood Intelligence for India",
+      "data": "Data: Esri World Imagery · Google Earth Engine (Dynamic World, JRC Global Surface Water, SRTM) · Open-Meteo · Gemini",
+      "disclaimer": "Risk scores and exposure figures are model-generated estimates for preparedness, not official forecasts or confirmed damage. Always follow instructions from IMD, CWC and local authorities. AI-generated analysis — please validate before operational use."
+    }
+  },
+  "forecast": {
+    "projecting": "Projecting 7-day risk…",
+    "outlook": "7-day risk outlook",
+    "peakPrefix": "72-hour peak risk ",
+    "peakOn": " on {{date}}",
+    "risk": "Risk",
+    "rainfall": "Rainfall",
+    "chartNote": "Pink line = daily flood-risk score · blue bars = forecast rainfall. Predictive model, not a guaranteed forecast.",
+    "trend": {
+      "rising": "Rising",
+      "falling": "Falling",
+      "steady": "Steady"
+    }
+  },
+  "safety": {
+    "title": "Flood Safety",
+    "subtitle": "Practical steps for individuals and families — before, during and after a flood.",
+    "call112": "Call 112",
+    "urgentTitle": "If a flood is happening now",
+    "urgent": [
+      "Move to higher ground when instructed or when water is rising near you.",
+      "Never walk, swim or drive through floodwater — even shallow, slow water.",
+      "Follow official evacuation orders immediately; take your emergency kit.",
+      "Stay away from drains, culverts, bridges, riverbanks and fast-flowing water.",
+      "Avoid fallen power lines and electrical equipment in or near water."
+    ],
+    "kitNav": "Emergency kit",
+    "planNav": "Family plan",
+    "phase": {
+      "before": {
+        "title": "Before a flood",
+        "items": [
+          "Monitor official weather and flood warnings (IMD, CWC, local authorities).",
+          "Learn your local evacuation routes and the nearest shelter locations.",
+          "Prepare an emergency kit (see the checklist below) and keep it ready.",
+          "Store documents and critical items in waterproof packaging.",
+          "Keep emergency contacts written down and accessible offline.",
+          "Plan for older adults, children, people with disabilities and pets.",
+          "Charge mobile phones and backup batteries/power banks.",
+          "Follow instructions from local authorities regarding evacuation."
+        ]
+      },
+      "during": {
+        "title": "During a flood",
+        "items": [
+          "Move to higher ground when instructed or when immediate danger requires it.",
+          "Follow official evacuation orders without delay.",
+          "Never walk, swim or drive through floodwater.",
+          "Stay away from fast-flowing water, drains, culverts, bridges and riverbanks.",
+          "Avoid touching electrical equipment or fallen power lines in flooded areas.",
+          "If safe to do so, turn off electricity and gas before evacuating — never enter floodwater to reach a switch.",
+          "Keep away from damaged buildings and contaminated water.",
+          "Keep children close and help vulnerable family members.",
+          "Contact emergency services if trapped or facing an immediate threat.",
+          "Signal for help from a safe location if communication is limited."
+        ],
+        "warn": "Climbing onto roofs or entering isolated structures is not a universal safe action — it depends on your situation and local emergency instructions."
+      },
+      "trapped": {
+        "title": "If trapped indoors",
+        "items": [
+          "Move away from rising water to the safest available higher level.",
+          "Do not enter dangerous, unstable or enclosed low-lying areas.",
+          "Call emergency services (112) when possible.",
+          "Share your exact location and details with rescuers.",
+          "Avoid enclosed spaces where electrical or structural hazards may exist.",
+          "Signal for help from a safe, visible location."
+        ],
+        "warn": "Basements and enclosed low-lying spaces can fill with water and become deadly during flooding — do not shelter in them."
+      },
+      "after": {
+        "title": "After a flood",
+        "items": [
+          "Return only when authorities say the area is safe.",
+          "Avoid floodwater and contaminated surfaces.",
+          "Treat fallen power lines and damaged electrical systems as dangerous.",
+          "Do not turn on electrical systems until they have been inspected where necessary.",
+          "Use safe drinking water and follow public-health advisories.",
+          "Avoid eating food contaminated by floodwater.",
+          "Wear protective footwear and gloves during cleanup.",
+          "Watch for structural damage, gas leaks and displaced animals.",
+          "Document property damage safely for insurance or assistance claims.",
+          "Seek medical attention for injuries or possible contamination."
+        ]
+      }
+    },
+    "kit": {
+      "title": "Emergency kit checklist",
+      "reset": "Reset",
+      "packed": "{{packed}} of {{total}} items packed",
+      "savedNote": "Your progress is saved on this device only.",
+      "groups": {
+        "waterFood": "Water & food",
+        "firstAid": "First aid & medicines",
+        "documents": "Documents & money",
+        "lighting": "Lighting & communication",
+        "clothing": "Clothing & hygiene",
+        "vulnerable": "Children, elders & disability",
+        "pets": "Pet supplies"
+      },
+      "items": {
+        "drinkingWater": "Drinking water (3+ days)",
+        "nonPerishable": "Non-perishable food",
+        "purificationTablets": "Water purification tablets",
+        "firstAidKit": "First-aid kit",
+        "prescriptionMeds": "Prescription medicines",
+        "sanitiserMasks": "Sanitiser & masks",
+        "idDocuments": "ID & documents (waterproof)",
+        "cash": "Cash in small notes",
+        "insurance": "Insurance papers",
+        "torch": "Torch & spare batteries",
+        "powerBank": "Power bank",
+        "whistle": "Whistle",
+        "radio": "Battery radio",
+        "dryClothes": "Dry clothes",
+        "raincoat": "Raincoat",
+        "footwear": "Sturdy footwear",
+        "hygiene": "Hygiene items",
+        "babyFood": "Baby food & diapers",
+        "mobilityAids": "Mobility/medical aids",
+        "spareAids": "Spare spectacles/hearing aids",
+        "petFood": "Pet food & water",
+        "leash": "Leash/carrier"
+      }
+    },
+    "plan": {
+      "title": "Family emergency plan",
+      "note": "Optional template to agree in advance. Saved only on this device — you do not need to fill this in to use the safety guide.",
+      "fields": {
+        "contact1": "Household emergency contact",
+        "contact1Ph": "Name & phone",
+        "meeting": "Meeting point (outside flood-prone area)",
+        "meetingPh": "Landmark / address",
+        "outOfArea": "Out-of-area contact",
+        "outOfAreaPh": "Name & phone",
+        "route": "Evacuation route",
+        "routePh": "Main route + alternative",
+        "medical": "Medication & accessibility needs",
+        "medicalPh": "Who needs what",
+        "shelter": "Preferred emergency shelter",
+        "shelterPh": "Shelter name / area"
+      }
+    },
+    "footerNote": "This guide is general preparedness advice and works even without a connection. It does not replace location-specific emergency orders. In an emergency, call {{phone}} and follow instructions from local authorities."
+  }
+}

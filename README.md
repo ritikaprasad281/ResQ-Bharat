@@ -1,8 +1,10 @@
-# Ganga Flood Intelligence
+# ResQ Bharat — India Flood Intelligence
 
-AI-powered flood prediction, risk mapping, and damage estimation for the **Ganga river basin** — built for the **Google AI Builder Cup**.
+**Live app:** https://resqbharat.web.app
 
-The platform fuses satellite radar, terrain, population, built-up surface, and live weather data to produce **flood-prone zone maps**, a **calibrated live flood-risk score**, and **monetary + life-risk damage estimates**, with a **Gemini**-generated operational briefing and a grounded Q&A assistant.
+AI-powered, satellite-grounded flood intelligence for **river basins across India** — built for the **Google AI Builder Cup**.
+
+ResQ Bharat fuses satellite radar, terrain, built-up surface, cropland, population and live weather into **flood-prone zone maps**, a **transparent live flood-risk score**, **rainfall forecasts**, **floodplain-development monitoring**, **agricultural (crop) loss estimates**, and a **multilingual Gemini assistant** — covering **100 study areas across all 28 states and 8 union territories**.
 
 > ⚠️ AI-generated analysis — validate before operational use. This is an early-warning decision-support tool, not a guaranteed forecast.
 
@@ -12,49 +14,81 @@ The platform fuses satellite radar, terrain, population, built-up surface, and l
 
 | Requirement | How it's used |
 |---|---|
-| **Gemini** | Generates plain-language flood briefings + answers grounded what-if questions (`gemini-3.8-flash` with fallback chain). |
+| **Gemini** | Plain-language flood briefings, grounded Q&A, multilingual emergency assistant, SMS/WhatsApp alerts (`gemini-3.8-flash` with a model fallback chain). |
 | **Cloud Run** | Hosts the FastAPI backend (satellite + weather + AI compute). |
-| **Firestore** | Caches computed flood-zone GeoJSON and model outputs for fast demo loads. |
+| **Firestore** | Cross-instance cache for flood-zone GeoJSON, susceptibility, rankings and model outputs. |
 | **Firebase Hosting** | Serves the React single-page app. |
+| **Pub/Sub** | Publishes citizen flood-alert dispatches. |
 
-Plus **Google Earth Engine** for all server-side geospatial analysis (no local GIS stack required).
+Plus **Google Earth Engine** for all server-side geospatial analysis (no local GIS stack required) and **Open-Meteo** for live/forecast rainfall.
 
 ---
 
-## What it does
+## Features
 
-- **Flood-prone zone mapping** — Sentinel-1 SAR historical water frequency + low-lying terrain proxy + JRC permanent-water exclusion, weighted into a 0–1 flood confidence and bucketed into 4 risk classes.
-- **Live flood risk** — blends Open-Meteo rainfall (3-day antecedent + 7-day forecast) with static susceptibility into a calibrated 0–1 score (low / medium / high / severe).
-- **Damage estimation** — GHSL built-up surface + WorldPop exposure under 1-in-10 / 1-in-25 / 1-in-100 depth-damage scenarios, in ₹ crore + a life-risk index.
-- **Model confidence** — validates predicted zones against observed Sentinel-1 flooding for past Bihar flood events (precision / recall / IoU).
-- **Gemini briefing + chat** — a concise responder briefing and a grounded Q&A assistant, strictly conditioned on the computed metrics.
+- **Flood Intelligence** — Sentinel-1 SAR historical water frequency + terrain (SRTM/HAND) + JRC Global Surface Water, weighted into a 0–1 flood confidence bucketed into 4 risk classes, with live exposure and return-period damage scenarios.
+- **Live flood risk** — a transparent, documented blend of rainfall pressure and terrain susceptibility:
+  `risk = 0.35 × susceptibility + 0.65 × rainfall_pressure`, where
+  `rainfall_pressure = 0.4 × antecedent(3-day) + 0.6 × forecast(7-day)`.
+- **Rainfall & Risk Forecast** — 7-day daily outlook plus 6h/24h/72h short-range horizons from Open-Meteo.
+- **Floodplain Development** — multi-signal (Dynamic World built-up + Sentinel-2 NDBI/NDVI) detection of new construction inside the flood corridor, with an explainable review-priority score.
+- **Crop Loss** — ESA WorldCover cropland intersected with the modelled flood corridor to estimate exposed/damaged hectares and indicative ₹ loss by state cropping mix.
+- **Regions needing attention** — live ranking of the highest-risk locations across all 100 study areas.
+- **AI Help** — multilingual, safety-first emergency assistant (10 Indian languages) with verified helplines and real maps hand-off (never fabricated facility data).
+- **Flood Safety** — offline-friendly preparedness guidance, emergency-kit checklist and family plan (stored locally on device).
+- **Model confidence** — validates predicted zones against observed Sentinel-1 flooding for real documented flood events (precision / recall / IoU; `live` tier requires IoU ≥ 0.50).
 
-Pilot stretches: **Kosi (North Bihar, Supaul–Saharsa)** and **Ganga main stem at Patna**.
+---
+
+## Coverage
+
+- **100 study areas** across **28 states + 8 union territories** (36 regions), spanning the Ganga, Brahmaputra, Godavari, Krishna, Kaveri, Narmada, Mahanadi, Jhelum and many other basins.
+- Honest coverage tiers surfaced in the UI: **live** (SAR-validated), **modelled** (runs on real per-area data but not yet validated), **partial** (steep/ephemeral/island terrain).
 
 ---
 
 ## Architecture
 
 ```
-React + MapLibre (Firebase Hosting)
+React + Vite + MapLibre (Firebase Hosting)
         │  REST
         ▼
-FastAPI (Cloud Run)
-        ├── Google Earth Engine  → zones, damage exposure, validation
-        ├── Open-Meteo           → live/forecast rainfall
-        ├── Gemini               → briefings + grounded chat
-        └── Firestore            → cached zone GeoJSON + outputs
+FastAPI (Cloud Run · asia-south1)
+        ├── Google Earth Engine  → zones, damage, new construction, crop loss, validation
+        ├── Open-Meteo           → live/forecast rainfall (memoized)
+        ├── Gemini               → briefings, grounded chat, multilingual emergency help
+        ├── Pub/Sub              → citizen alert dispatch
+        └── Firestore            → cached GeoJSON, susceptibility, rankings, model outputs
 ```
+
+Performance: expensive work is cached in Firestore (cross-instance source of truth) and accelerated per-instance with a short-TTL in-process cache, parallel ranking/reads, and a stale-while-revalidate single-flight ranking cache. Risk-algorithm accuracy is preserved exactly (see `backend/tests/`).
 
 ---
 
 ## Project layout
 
 ```
-backend/     FastAPI app (Earth Engine, Firestore, Gemini clients + services)
-frontend/    React + Vite + TypeScript + MapLibre UI
-docs/        Detailed technical approach & methodology
-scripts/     Earth Engine connectivity test
+backend/
+  app/
+    main.py              FastAPI app
+    basins.py            100 study-area registry (states/UTs, rivers, coverage)
+    config.py            settings (env-driven)
+    ee_client.py         Earth Engine init
+    ttl_cache.py         in-process TTL cache (per-instance acceleration)
+    clients/             firestore / gemini / pubsub clients
+    routers/api.py       all REST endpoints
+    services/            risk, forecast, flood_zones, damage, impact,
+                         new_construction, imagery, agri_loss, validation, live_risk
+  scripts/               one-off cache-warming + latency probe
+  tests/                 offline unit tests (registry, languages, agri-loss, perf)
+frontend/
+  src/
+    pages/               Home, Flood Intelligence, Floodplain, Crop Loss,
+                         Report, AI Help, Flood Safety, About
+    components/          map, charts, panels, search, language, voice
+    i18n/ + locales/     10 Indian languages
+    api.ts, types.ts, lib.ts
+docs/                    detailed technical approach & methodology
 ```
 
 ---
@@ -77,6 +111,14 @@ Requires Google Cloud ADC with the Earth Engine scope:
 gcloud auth application-default login --scopes="https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/earthengine"
 ```
 
+Run the offline tests:
+
+```powershell
+.\.venv\Scripts\python.exe -m tests.test_registry
+.\.venv\Scripts\python.exe -m tests.test_perf
+.\.venv\Scripts\python.exe -m tests.test_agri_loss
+```
+
 ### Frontend
 
 ```powershell
@@ -94,23 +136,34 @@ Set `VITE_API_BASE` in `frontend/.env` to the backend URL (defaults to `http://l
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/health` | Liveness check |
-| GET | `/api/pilots` | List pilot basins |
+| GET | `/api/pilots` | List study areas (region, coverage, validation) |
 | GET | `/api/zones?pilot=` | Flood-prone zone GeoJSON (cached) |
-| GET | `/api/risk?pilot=` | Live flood-risk score + rainfall |
-| GET | `/api/damage?pilot=` | Exposure + scenario damage estimates |
+| GET | `/api/risk?pilot=` | Live flood-risk score + rainfall + methodology |
+| GET | `/api/forecast?pilot=` | 7-day + 6h/24h/72h rainfall & risk forecast |
+| GET | `/api/damage?pilot=` | Exposure + return-period damage estimates |
+| GET | `/api/new-construction?pilot=` | Floodplain development detection |
+| GET | `/api/imagery?pilot=` | Before/after satellite imagery |
+| GET | `/api/agri-loss?pilot=` | Per-area crop-loss estimate |
+| GET | `/api/agri-loss-summary` | Nationwide crop-loss rollup |
+| GET | `/api/impact` | Nationwide exposure rollup |
+| GET | `/api/top-risk?limit=` | Highest live-risk locations |
+| GET | `/api/alerts` | Locations under high/severe alert |
 | GET | `/api/events` | Historical flood events for validation |
 | GET | `/api/validate?pilot=&event=` | Precision / recall / IoU vs observed flooding |
+| GET/POST | `/api/reports` | Citizen hazard reports |
 | POST | `/api/ai/briefing` | Gemini operational briefing |
 | POST | `/api/ai/chat` | Grounded Gemini Q&A |
+| POST | `/api/ai/alert` | Citizen alert (SMS/WhatsApp copy + Pub/Sub dispatch) |
+| POST | `/api/ai/assist` | Multilingual emergency assistant |
 
 ---
 
 ## Methodology & data sources
 
-See [docs/ganga-flood-approach.md](docs/ganga-flood-approach.md) for the full technical approach, data-source table, confidence metrics, and design rationale.
+Core datasets: **Sentinel-1 SAR**, **JRC Global Surface Water v1.4** (1984–2021), **SRTM**, **GHSL built-up surface**, **WorldPop**, **ESA WorldCover**, **Dynamic World**, **Open-Meteo**. See [docs/ganga-flood-approach.md](docs/ganga-flood-approach.md) for the full approach, data-source table, confidence metrics and design rationale.
 
 ---
 
 ## Disclaimer
 
-Estimates are derived from public satellite products and published depth-damage curves. Outputs are for decision support and demonstration only and must be validated before any operational or emergency-management use.
+Estimates are derived from public satellite products, live weather forecasts and published depth-damage/crop-loss assumptions. Outputs are for decision support and demonstration only and must be validated before any operational or emergency-management use. In an emergency, call **112**.

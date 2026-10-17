@@ -1,63 +1,75 @@
 import { motion } from "framer-motion";
-import { Droplets, MapPin, Waves } from "lucide-react";
-import type { Pilot, Risk } from "../types";
-import { pct, riskColor } from "../lib";
+import { Droplets, Loader2, AlertTriangle } from "lucide-react";
+import type { Pilot, Risk, TopRiskItem } from "../types";
+import { pct, riskColor, coverageOf, timeAgo } from "../lib";
+import TopRiskPanel from "./TopRiskPanel";
+import LocationSearch from "./LocationSearch";
 
 interface Props {
   pilots: Pilot[];
   selected: string;
   onSelect: (id: string) => void;
   risk?: Risk;
+  topRisk: TopRiskItem[];
+  topLoading: boolean;
 }
 
-export default function Sidebar({ pilots, selected, onSelect, risk }: Props) {
+export default function Sidebar({
+  pilots,
+  selected,
+  onSelect,
+  risk,
+  topRisk,
+  topLoading,
+}: Props) {
+  const sel = pilots.find((p) => p.id === selected);
+  const cov = coverageOf(sel?.coverage);
   return (
-    <aside className="glass w-72 shrink-0 flex flex-col gap-4 p-4 overflow-y-auto">
-      <div className="flex items-center gap-2">
-        <div className="grid place-items-center h-9 w-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-700">
-          <Waves className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h1 className="text-sm font-bold leading-tight">Ganga Flood</h1>
-          <p className="text-[11px] text-slate-400">Intelligence Platform</p>
-        </div>
-      </div>
-
+    <aside className="glass w-full h-full shrink-0 flex flex-col gap-4 p-4 overflow-y-auto lg:border-r border-white/5">
       <div>
         <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">
-          Pilot basins
+          Select location
         </p>
-        <div className="flex flex-col gap-2">
-          {pilots.map((p) => {
-            const active = p.id === selected;
-            return (
-              <button
-                key={p.id}
-                onClick={() => onSelect(p.id)}
-                className={`text-left rounded-xl px-3 py-2.5 border transition ${
-                  active
-                    ? "bg-ink-600 border-sky-500/50"
-                    : "bg-ink-800/50 border-transparent hover:border-slate-600"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <MapPin
-                    className={`h-4 w-4 ${
-                      active ? "text-sky-400" : "text-slate-500"
-                    }`}
-                  />
-                  <span className="text-sm font-medium">{p.tributary}</span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-0.5 pl-6">
-                  {p.name}
-                </p>
-              </button>
-            );
-          })}
-        </div>
+        <LocationSearch pilots={pilots} value={selected} onSelect={onSelect} />
+        {sel && (
+          <div className="mt-2 rounded-lg bg-ink-800/50 border border-white/5 px-2.5 py-2">
+            <div className="flex items-center gap-2 text-[11px]">
+              <span
+                className="h-2 w-2 rounded-full shrink-0"
+                style={{ background: cov.dot }}
+              />
+              <span className={`font-medium ${cov.text}`}>{cov.label}</span>
+              {sel.region && (
+                <span className="ml-auto text-[10px] text-slate-500">
+                  {sel.region}
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-[10px] text-slate-500 leading-relaxed">
+              {cov.note}
+            </p>
+          </div>
+        )}
       </div>
 
-      {risk && (
+      <TopRiskPanel
+        items={topRisk}
+        selected={selected}
+        loading={topLoading}
+        onSelect={onSelect}
+      />
+
+      {!risk ? (
+        <div className="rounded-xl bg-ink-800/60 border border-white/5 p-4">
+          <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-3">
+            Live flood risk
+          </p>
+          <div className="flex items-center gap-3 text-[12px] text-slate-500">
+            <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
+            Computing risk…
+          </div>
+        </div>
+      ) : (
         <motion.div
           key={risk.aoi + risk.probability}
           initial={{ opacity: 0, y: 8 }}
@@ -77,7 +89,7 @@ export default function Sidebar({ pilots, selected, onSelect, risk }: Props) {
                 {risk.level}
               </div>
               <div className="text-[11px] text-slate-400">
-                {pct(risk.probability)} probability
+                {pct(risk.probability)} modelled probability
               </div>
             </div>
           </div>
@@ -85,6 +97,22 @@ export default function Sidebar({ pilots, selected, onSelect, risk }: Props) {
             <Droplets className="h-3.5 w-3.5 text-sky-400" />
             7-day forecast: {risk.rainfall.forecast_7d_mm} mm
           </div>
+          {risk.updated_at && (
+            <div className="mt-1 text-[10px] text-slate-500">
+              Rainfall updated {timeAgo(risk.updated_at)} · Open-Meteo
+            </div>
+          )}
+          {risk.data_quality && !risk.data_quality.rainfall_complete && (
+            <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 px-2 py-1.5 text-[10px] text-amber-200/90 leading-relaxed">
+              <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
+              Some rainfall days are missing from the feed, so this score may be
+              understated. Treat it as provisional.
+            </div>
+          )}
+          <p className="mt-2 text-[10px] text-slate-500 leading-relaxed">
+            Model estimate from rainfall &amp; terrain susceptibility — a
+            relative index, not a calibrated probability.
+          </p>
         </motion.div>
       )}
 

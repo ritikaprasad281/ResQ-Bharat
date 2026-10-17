@@ -1,4 +1,4 @@
-"""FastAPI entrypoint for the Ganga basin flood prediction service."""
+"""FastAPI entrypoint for the ResQ Bharat nationwide India flood service."""
 
 from __future__ import annotations
 

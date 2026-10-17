@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700;800&family=Noto+Sans+Kannada:wght@400;500;600;700;800&family=Noto+Sans+Malayalam:wght@400;500;600;700;800&family=Noto+Sans+Gujarati:wght@400;500;600;700;800&family=Noto+Sans+Gurmukhi:wght@400;500;600;700;800&display=swap");
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 @tailwind base;
@@ -8,15 +8,32 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
   margin: 0;
 }
 
 body {
-  background: #0a0e1a;
-  color: #e5e7eb;
-  font-family: "Inter", system-ui, sans-serif;
+  background: #081321;
+  background-image:
+    radial-gradient(48rem 32rem at 85% -10%, rgba(53, 201, 232, 0.05), transparent 60%),
+    radial-gradient(42rem 30rem at 10% 0%, rgba(41, 214, 176, 0.04), transparent 60%);
+  background-attachment: fixed;
+  color: #e9eef6;
+  font-family: "Inter", "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam", "Noto Sans Gujarati", "Noto Sans Gurmukhi", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Indic scripts need normal tracking; tight letter-spacing breaks conjunct shaping. */
+:lang(hi),
+:lang(bn),
+:lang(mr),
+:lang(ta),
+:lang(te),
+:lang(kn),
+:lang(ml),
+:lang(gu),
+:lang(pa) {
+  letter-spacing: normal !important;
 }
 
 /* Thin custom scrollbars for the panels. */
@@ -36,4 +53,10 @@ body {
   background: rgba(15, 21, 36, 0.75);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@layer components {
+  .inp {
+    @apply w-full rounded-xl bg-ink-800/70 border border-white/10 px-3 py-2.5 text-sm outline-none transition placeholder:text-slate-500 focus:border-sky-500/60;
+  }
 }

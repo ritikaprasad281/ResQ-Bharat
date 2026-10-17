@@ -14,7 +14,9 @@ import ee
 from app.basins import Aoi
 from app.ee_client import ensure_ee
 
-# Monsoon season drives flooding in the Ganga basin.
+# The southwest monsoon (Jun-Oct) drives most riverine flooding across India.
+# NOTE: the Tamil Nadu / south-coast northeast monsoon (Oct-Dec) is only partly
+# covered by this window, so coastal-south zones are flagged "modelled".
 MONSOON_START_MONTH = 6
 MONSOON_END_MONTH = 10
 # VV backscatter below this (dB) is classified as water.
@@ -47,6 +49,43 @@ def _low_lying_proxy(region: ee.Geometry) -> ee.Image:
     hand = dem.subtract(local_min)  # metres above local low point
     # Map 0..10 m above drainage to 1..0 floodability.
     return hand.multiply(-0.1).add(1).clamp(0, 1)
+
+
+def _river_corridor(
+    region: ee.Geometry,
+    max_buffer_m: float = 2000.0,
+    height_threshold_m: float = 6.0,
+) -> ee.Image:
+    """Elevation-aware mask of floodable land beside the river channel.
+
+    The channel is traced from JRC Global Surface Water occurrence. A pixel is
+    in the corridor when it is both within `max_buffer_m` of the channel *and*
+    no more than `height_threshold_m` above the local river level (a HAND-style
+    height). So the corridor widens across flat low ground and pinches in where
+    the bank rises (e.g. elevated town cores), instead of a flat buffer.
+    """
+    occurrence = (
+        ee.Image("JRC/GSW1_4/GlobalSurfaceWater")
+        .select("occurrence")
+        .unmask(0)
+        .clip(region)
+    )
+    river = occurrence.gte(25)  # >=25% of observations = main/seasonal channel
+
+    # Distance (metres) to the nearest river pixel, capped at max_buffer_m.
+    distance = river.selfMask().distance(
+        ee.Kernel.euclidean(max_buffer_m, "meters"), False
+    )
+    within_buffer = distance.lte(max_buffer_m)
+
+    # Height above the local river level: the river is the drainage base, so the
+    # lowest elevation within the buffer approximates the river's water level.
+    dem = ee.Image("USGS/SRTMGL1_003").select("elevation").clip(region)
+    river_level = dem.focal_min(max_buffer_m, "circle", "meters")
+    height_above_river = dem.subtract(river_level)
+    low_enough = height_above_river.lte(height_threshold_m)
+
+    return within_buffer.And(low_enough).unmask(0)
 
 
 def compute_flood_zone_image(
@@ -101,7 +140,25 @@ def compute_flood_zones_geojson(
         .rename("risk_class")
     )
 
-    vectors = classes.addBands(score).reduceToVectors(
+    # Constrain zones to floodable land beside the river (elevation-aware
+    # corridor) so flood areas follow the river and low ground, not flat
+    # farmland that sits well above the channel.
+    corridor = _river_corridor(region)
+    classes = classes.updateMask(corridor)
+
+    # Majority filter: merges neighbouring cells and removes isolated single
+    # pixels so the vectorised output is contiguous blobs rather than a grid of
+    # tiny squares. Run at the vectorisation scale (pixel units).
+    smoothed = (
+        classes.focal_mode(
+            radius=1.5, kernelType="circle", units="pixels", iterations=2
+        )
+        .reproject(crs="EPSG:4326", scale=scale)
+        .updateMask(corridor)
+        .rename("risk_class")
+    )
+
+    vectors = smoothed.addBands(score).reduceToVectors(
         geometry=region,
         scale=scale,
         geometryType="polygon",
@@ -110,11 +167,11 @@ def compute_flood_zones_geojson(
         reducer=ee.Reducer.mean(),
         maxPixels=1e9,
     )
-    # Simplify + drop slivers for a clean map.
+    # Simplify hard pixel staircases into smooth polygons and drop slivers.
     vectors = vectors.map(
-        lambda f: f.simplify(maxError=60).set(
-            "area_km2", f.geometry().area(maxError=30).divide(1e6)
+        lambda f: f.simplify(maxError=150).set(
+            "area_km2", f.geometry().area(maxError=50).divide(1e6)
         )
-    ).filter(ee.Filter.gt("area_km2", 0.05))
+    ).filter(ee.Filter.gt("area_km2", 0.08))
 
     return vectors.getInfo()

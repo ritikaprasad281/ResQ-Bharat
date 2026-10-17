@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     gcp_project: str = "ganga-flood"
     gemini_api_key: str = ""
+    pubsub_alert_topic: str = "flood-alerts"
     cors_origins: str = "http://localhost:5173,http://localhost:4173"
 
     @property

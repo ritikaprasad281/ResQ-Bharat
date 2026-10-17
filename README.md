@@ -14,7 +14,7 @@ ResQ Bharat fuses satellite radar, terrain, built-up surface, cropland, populati
 
 | Requirement | How it's used |
 |---|---|
-| **Gemini** | Plain-language flood briefings, grounded Q&A, multilingual emergency assistant, SMS/WhatsApp alerts (`gemini-3.8-flash` with a model fallback chain). |
+| **Gemini** | Plain-language flood briefings, grounded Q&A, cross-area situation reports, **multimodal photo hazard assessment (vision)**, multilingual emergency assistant, and SMS/WhatsApp alerts (`gemini-3.8-flash` with a model fallback chain). |
 | **Cloud Run** | Hosts the FastAPI backend (satellite + weather + AI compute). |
 | **Firestore** | Cross-instance cache for flood-zone GeoJSON, susceptibility, rankings and model outputs. |
 | **Firebase Hosting** | Serves the React single-page app. |
@@ -35,7 +35,9 @@ Plus **Google Earth Engine** for all server-side geospatial analysis (no local G
 - **Floodplain Development** — multi-signal (Dynamic World built-up + Sentinel-2 NDBI/NDVI) detection of new construction inside the flood corridor, with an explainable review-priority score.
 - **Crop Loss** — ESA WorldCover cropland intersected with the modelled flood corridor to estimate exposed/damaged hectares and indicative ₹ loss by state cropping mix.
 - **Regions needing attention** — live ranking of the highest-risk locations across all 100 study areas.
+- **AI Situation Report** — Gemini synthesises the live cross-area ranking into a decision-ready control-room SITREP (headline, priority areas, where to focus, data-freshness caveats), grounded strictly on the ranking numbers.
 - **AI Help** — multilingual, safety-first emergency assistant (10 Indian languages) with verified helplines and real maps hand-off (never fabricated facility data).
+- **Photo hazard check** — multimodal Gemini **vision**: a resident uploads a photo of their surroundings and gets an honest hazard assessment (qualitative depth cues, current, electrical/contamination risks) without fabricating exact depths, facilities or locations.
 - **Flood Safety** — offline-friendly preparedness guidance, emergency-kit checklist and family plan (stored locally on device).
 - **Model confidence** — validates predicted zones against observed Sentinel-1 flooding for real documented flood events (precision / recall / IoU; `live` tier requires IoU ≥ 0.50).
 
@@ -157,6 +159,8 @@ Set `VITE_API_BASE` in `frontend/.env` to the backend URL (defaults to `http://l
 | POST | `/api/ai/chat` | Grounded Gemini Q&A |
 | POST | `/api/ai/alert` | Citizen alert (SMS/WhatsApp copy + Pub/Sub dispatch) |
 | POST | `/api/ai/assist` | Multilingual emergency assistant |
+| POST | `/api/ai/situation` | Gemini situation report synthesising the live cross-area ranking |
+| POST | `/api/ai/photo` | Multimodal (Gemini vision) flood-photo hazard assessment |
 
 ---
 

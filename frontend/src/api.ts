@@ -11,9 +11,11 @@ import type {
   NewConstruction,
   Imagery,
   Pilot,
+  PhotoAssessment,
   Report,
   ReportInput,
   Risk,
+  SituationReport,
   TopRisk,
   Validation,
   ZonesGeoJSON,
@@ -32,9 +34,13 @@ const DEFAULT_TIMEOUT_MS = 30_000;
  * load (e.g. several components asking for the ranking at once). */
 const inflight = new Map<string, Promise<unknown>>();
 
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+async function fetchJson<T>(
+  url: string,
+  init?: RequestInit,
+  timeoutMs = DEFAULT_TIMEOUT_MS
+): Promise<T> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, { ...init, signal: controller.signal });
     if (!res.ok) throw new Error(`${url} -> ${res.status}`);
@@ -113,6 +119,33 @@ export const api = {
       location: location ?? null,
       ...meta,
     }).then((r) => r.answer),
+  situation: (limit = 8, language: Language = "en-IN") =>
+    fetchJson<SituationReport>(
+      `${BASE}/api/ai/situation`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ limit, language, response_language: language }),
+      },
+      60_000
+    ),
+  photoAssess: (
+    file: File,
+    opts: { question?: string; location?: string; language?: Language } = {}
+  ) => {
+    const lang = opts.language ?? "en-IN";
+    const fd = new FormData();
+    fd.append("file", file);
+    if (opts.question?.trim()) fd.append("question", opts.question.trim());
+    if (opts.location?.trim()) fd.append("location", opts.location.trim());
+    fd.append("language", lang);
+    fd.append("response_language", lang);
+    return fetchJson<PhotoAssessment>(
+      `${BASE}/api/ai/photo`,
+      { method: "POST", body: fd },
+      60_000
+    );
+  },
 };
 
 /** Optional language/voice context passed alongside a chat or assist request. */

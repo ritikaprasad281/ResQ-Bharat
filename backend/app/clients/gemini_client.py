@@ -8,6 +8,7 @@ import json
 
 from google import genai
 from google.genai import errors as genai_errors
+from google.genai import types
 
 from app.config import settings
 
@@ -85,6 +86,20 @@ def _generate(prompt: str) -> str:
             return (resp.text or "").strip()
         except (genai_errors.ServerError, genai_errors.ClientError) as exc:
             last_err = exc  # overloaded or unavailable -> try next model
+            continue
+    raise RuntimeError(f"All Gemini models failed. Last error: {last_err}")
+
+
+def _generate_parts(parts: list) -> str:
+    """Multimodal generate (e.g. image + text), with the same model fallback."""
+    client = _get_client()
+    last_err: Exception | None = None
+    for model in MODELS:
+        try:
+            resp = client.models.generate_content(model=model, contents=parts)
+            return (resp.text or "").strip()
+        except (genai_errors.ServerError, genai_errors.ClientError) as exc:
+            last_err = exc
             continue
     raise RuntimeError(f"All Gemini models failed. Last error: {last_err}")
 
@@ -214,3 +229,89 @@ def answer_emergency(
         + f"\n\nUSER QUESTION: {question}"
     )
     return _generate(prompt)
+
+
+def generate_situation_report(context: dict, language: str = "en") -> str:
+    """Train-wide flood situation report synthesised from the live ranking.
+
+    Grounded strictly on the ranking we pass in (the same numbers the UI shows),
+    so it adds interpretation and prioritisation — not new facts."""
+    prompt = (
+        "You are the lead analyst in a national flood control room. Using ONLY "
+        "the JSON situational data below (a live ranking across all monitored "
+        "areas), write a concise SITUATION REPORT for duty officers. Do not "
+        "invent any area, number, or alert that is not in the data.\n\n"
+        "STRUCTURE (short Markdown):\n"
+        "1. **Headline** — one sentence: how many areas are under high/severe "
+        "alert out of how many assessed, and the single most urgent location.\n"
+        "2. **Priority areas** — a short bullet list of the top areas by "
+        "probability, each as: name (region) — level, probability as a "
+        "percentage, and the main rainfall driver (forecast_7d_mm / "
+        "antecedent_3d_mm). Keep to the areas actually in the data.\n"
+        "3. **Where to focus** — 2-3 practical coordination actions implied by "
+        "the pattern (e.g. pre-position resources in the top cluster). Do not "
+        "name specific teams, assets, shelters, or phone numbers.\n"
+        "4. **Caveats** — note the data freshness from `generated_at`, that "
+        "`assessed` may be fewer than `total` (some areas not scored this "
+        "cycle), and that these are MODELLED risks, not gauge readings.\n"
+        "Keep the whole report under 180 words. "
+        + _lang_clause(language)
+        + f"\n\nSITUATION DATA:\n{json.dumps(context, indent=2)}"
+    )
+    return _generate(prompt)
+
+
+_PHOTO_SYSTEM = (
+    "You are a flood-safety assistant analysing a photo a resident has shared "
+    "of their surroundings during a possible flood. Assess ONLY what is visibly "
+    "evident in the image and give safety guidance. Rules:\n"
+    "1. If the image shows an immediate life threat (deep or fast-moving water, "
+    "someone in the water, water entering a home, a person stranded), lead with "
+    "a short URGENT line telling them to call 112 immediately.\n"
+    "2. Estimate water depth ONLY in qualitative, reference-based terms (e.g. "
+    "'around knee height against the parked vehicle'); NEVER give a precise "
+    "centimetre/metre figure and say depth cannot be measured from a photo.\n"
+    "3. Flag visible hazards: current/flow, submerged obstacles, proximity to "
+    "electrical lines/poles/meters, open drains or manholes, contamination "
+    "(sewage/fuel sheen), and unstable structures.\n"
+    "4. NEVER invent a location, facility, road, distance, or phone number, and "
+    "never claim you have alerted anyone or know what is outside the frame.\n"
+    "5. If the photo does not actually show flooding or is unclear, say so "
+    "honestly and give general preparedness advice instead of guessing.\n"
+    "6. Keep it concise and ordered. End with a one-line reminder that local "
+    "authority instructions and 112 take priority over this AI assessment."
+)
+
+
+def assess_flood_photo(
+    image_bytes: bytes,
+    mime_type: str,
+    question: str | None = None,
+    location: str | None = None,
+    language: str = "en",
+) -> str:
+    """Multimodal: assess visible flood hazards in a user photo (Gemini vision)."""
+    loc = (location or "").strip()
+    q = (question or "").strip()
+    loc_clause = (
+        f"The resident says this is near: {loc!r}. Use it only to phrase general "
+        "guidance; do not fabricate facilities or distances."
+        if loc
+        else "No location was provided; keep guidance location-independent."
+    )
+    q_clause = f"Their specific question: {q}" if q else (
+        "They did not ask a specific question; give the most useful hazard "
+        "assessment and safety steps for what the photo shows."
+    )
+    prompt = (
+        _PHOTO_SYSTEM
+        + "\n\n"
+        + loc_clause
+        + "\n"
+        + q_clause
+        + "\n"
+        + _lang_clause(language)
+        + "\n\nAnalyse the attached image now."
+    )
+    image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+    return _generate_parts([image_part, prompt])

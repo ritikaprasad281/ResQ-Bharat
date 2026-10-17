@@ -28,6 +28,7 @@ import LanguageSelect from "../components/LanguageSelect";
 import AssistantMarkdown from "../components/AssistantMarkdown";
 import VoiceInput from "../components/VoiceInput";
 import SpeakButton from "../components/SpeakButton";
+import PhotoCheck from "../components/PhotoCheck";
 import { loadVoices } from "../i18n/capabilities";
 import { getLanguage } from "../i18n/languages";
 import {
@@ -358,6 +359,9 @@ export default function AiHelpPage() {
             </p>
           )}
         </div>
+
+        {/* Photo hazard check (multimodal Gemini vision) */}
+        <PhotoCheck language={rl.resolved} location={locationForApi} />
 
         {/* Quick actions */}
         <section>

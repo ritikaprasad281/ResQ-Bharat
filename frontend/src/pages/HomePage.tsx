@@ -40,6 +40,7 @@ import { riskColor, pct, formatNumber, CLASS_COLORS } from "../lib";
 import LocationSearch from "../components/LocationSearch";
 import MapView from "../components/MapView";
 import ForecastTimeline from "../components/ForecastTimeline";
+import SituationReport from "../components/SituationReport";
 
 function timeAgo(iso?: string | null): string {
   if (!iso) return "—";
@@ -504,6 +505,9 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* ===== AI situation report ===== */}
+      <SituationReport />
 
       {/* ===== Exposure / impact ===== */}
       {impact && (

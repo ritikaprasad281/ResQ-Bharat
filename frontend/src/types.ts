@@ -257,6 +257,22 @@ export interface TopRisk {
   all: TopRiskItem[];
 }
 
+export interface SituationReport {
+  language: string;
+  generated_at: string | null;
+  assessed: number;
+  total: number;
+  high_or_severe_count: number;
+  report: string;
+}
+
+export interface PhotoAssessment {
+  language: string;
+  location: string | null;
+  question: string | null;
+  assessment: string;
+}
+
 export interface AlertItem {
   id: string;
   name: string;

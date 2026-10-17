@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from app.basins import (
@@ -487,6 +487,98 @@ def ai_assist(req: AssistRequest) -> dict:
         "location": req.location,
         "answer": answer,
     }
+
+
+class SituationRequest(BaseModel):
+    language: str = "en"
+    response_language: str | None = None
+    limit: int = 8
+
+
+@router.post("/ai/situation")
+def ai_situation(req: SituationRequest) -> dict:
+    """AI situation report: synthesises the live cross-area ranking into a
+    decision-ready SITREP for control-room officers. Grounded strictly on the
+    same ranking the UI shows (interpretation, not new facts)."""
+    ranking = _cached_ranking()
+    all_items = ranking.get("all", [])
+    limit = max(1, min(req.limit, 20))
+    top = [
+        {
+            "name": it.get("name"),
+            "region": get_region(it.get("id", "")),
+            "level": it.get("level"),
+            "probability": it.get("probability"),
+            "forecast_7d_mm": it.get("forecast_7d_mm"),
+            "antecedent_3d_mm": it.get("antecedent_3d_mm"),
+        }
+        for it in all_items[:limit]
+    ]
+    alert_count = sum(
+        1 for it in all_items if it.get("level") in ("high", "severe")
+    )
+    context = {
+        "generated_at": ranking.get("generated_at"),
+        "assessed": ranking.get("assessed", len(all_items)),
+        "total": ranking.get("total", len(all_items)),
+        "high_or_severe_count": alert_count,
+        "top_areas": top,
+    }
+    language = _answer_language(req)
+    report = gemini_client.generate_situation_report(context, language)
+    return {
+        "language": language,
+        "generated_at": ranking.get("generated_at"),
+        "assessed": context["assessed"],
+        "total": context["total"],
+        "high_or_severe_count": alert_count,
+        "report": report,
+    }
+
+
+# Reject oversized uploads early; Gemini vision needs only a modest image.
+_MAX_PHOTO_BYTES = 8 * 1024 * 1024
+_ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic"}
+
+
+@router.post("/ai/photo")
+async def ai_photo(
+    file: UploadFile = File(...),
+    question: str | None = Form(None),
+    location: str | None = Form(None),
+    language: str = Form("en"),
+    response_language: str | None = Form(None),
+) -> dict:
+    """Multimodal flood-photo assessment (Gemini vision): a resident uploads a
+    photo of their surroundings and gets an honest, safety-first hazard
+    assessment. Never fabricates depth figures, facilities, or locations."""
+    mime = (file.content_type or "").lower()
+    if mime not in _ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=415,
+            detail="Please upload a JPEG, PNG, WEBP or HEIC image.",
+        )
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty image upload.")
+    if len(data) > _MAX_PHOTO_BYTES:
+        raise HTTPException(
+            status_code=413, detail="Image too large (max 8 MB)."
+        )
+    language = gemini_client.normalize_language(response_language or language)
+    try:
+        answer = gemini_client.assess_flood_photo(
+            data, mime, question, location, language
+        )
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"Vision analysis failed: {e}")
+    return {
+        "language": language,
+        "location": location,
+        "question": question,
+        "assessment": answer,
+    }
+
 
 
 def _aoi(pilot: str):

@@ -48,6 +48,16 @@ Plus **Google Earth Engine** for all server-side geospatial analysis (no local G
 
 ---
 
+## Documentation
+
+A full documentation wiki (with Mermaid architecture diagrams) lives in [`docs/`](docs/README.md):
+
+- **[Documentation home](docs/README.md)** — index for both audiences.
+- **[Technical documentation](docs/README.md#technical-documentation)** — architecture, data flow, methodology, API reference, deployment, security, performance, testing, limitations.
+- **[User guide](docs/user-guide/README.md)** — getting started, dashboard, map, AI help, multilingual & voice, flood safety, troubleshooting, FAQ.
+
+---
+
 ## Architecture
 
 ```

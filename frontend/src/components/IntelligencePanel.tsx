@@ -15,6 +15,7 @@ import type { Damage, FloodEvent, Risk, Validation } from "../types";
 import { formatNumber, pct, timeAgo } from "../lib";
 import { RainfallChart } from "./Charts";
 import ForecastTimeline from "./ForecastTimeline";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   pilot: string;
@@ -39,6 +40,7 @@ export default function IntelligencePanel({
   scenario,
   onScenario,
 }: Props) {
+  const { t } = useTranslation();
   const [outlook, setOutlook] = useState<"rainfall" | "risk">("rainfall");
   const [confOpen, setConfOpen] = useState(false);
   const [methodOpen, setMethodOpen] = useState(false);
@@ -51,32 +53,32 @@ export default function IntelligencePanel({
       <section>
         <div className="flex items-center justify-between mb-2">
           <p className="text-[11px] uppercase tracking-wider text-slate-500">
-            Exposure &amp; damage
+            {t("intel.panel.exposureDamage")}
           </p>
-          <span className="text-[10px] text-slate-500">estimates</span>
+          <span className="text-[10px] text-slate-500">{t("intel.panel.estimates")}</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <Stat
             icon={<Users className="h-4 w-4" />}
-            label="Population exposed"
+            label={t("intel.panel.populationExposed")}
             value={damage ? formatNumber(damage.population_exposed) : "—"}
             tint="text-sky-400"
           />
           <Stat
             icon={<Building2 className="h-4 w-4" />}
-            label="Buildings exposed"
+            label={t("intel.panel.buildingsExposed")}
             value={damage ? formatNumber(damage.buildings_exposed) : "—"}
             tint="text-emerald-400"
           />
           <Stat
             icon={<IndianRupee className="h-4 w-4" />}
-            label={`Damage · ${rpLabel}`}
+            label={t("intel.panel.damage", { rp: rpLabel })}
             value={sc ? `₹${sc.est_damage_crore} Cr` : "—"}
             tint="text-amber-400"
           />
           <Stat
             icon={<Target className="h-4 w-4" />}
-            label={`Life-risk index · ${rpLabel}`}
+            label={t("intel.panel.lifeRiskIndex", { rp: rpLabel })}
             value={sc ? `${sc.life_risk_index}` : "—"}
             tint="text-rose-400"
           />
@@ -86,10 +88,10 @@ export default function IntelligencePanel({
         {damage && (
           <div className="mt-2.5">
             <div className="flex items-center gap-1.5 mb-1.5">
-              <span className="text-[10px] text-slate-500">Return period</span>
+              <span className="text-[10px] text-slate-500">{t("intel.panel.returnPeriod")}</span>
               <span
                 className="text-slate-600"
-                title="Annual exceedance scenario. Larger return periods are rarer, more severe floods."
+                title={t("intel.panel.returnPeriodTip")}
               >
                 <Info className="h-3 w-3" />
               </span>
@@ -111,9 +113,7 @@ export default function IntelligencePanel({
             </div>
             {sc && (
               <p className="mt-2 text-[10px] text-slate-500 leading-relaxed">
-                {rpLabel}-year flood · modelled depth {sc.depth_m} m · damage
-                factor {Math.round(sc.damage_factor * 100)}%. Figures are
-                modelled estimates, not observed losses.
+                {t("intel.panel.scenarioNote", { rp: rpLabel, depth: sc.depth_m, factor: Math.round(sc.damage_factor * 100) })}
               </p>
             )}
           </div>
@@ -124,20 +124,20 @@ export default function IntelligencePanel({
       <section>
         <div className="flex items-center justify-between mb-2">
           <p className="text-[11px] uppercase tracking-wider text-slate-500">
-            Rainfall &amp; risk outlook
+            {t("intel.panel.rainfallRiskOutlook")}
           </p>
           <div className="inline-flex rounded-lg border border-white/10 bg-ink-900/60 p-0.5">
             <SegBtn
               active={outlook === "rainfall"}
               onClick={() => setOutlook("rainfall")}
               icon={<CloudRain className="h-3.5 w-3.5" />}
-              label="Rainfall"
+              label={t("intel.panel.rainfall")}
             />
             <SegBtn
               active={outlook === "risk"}
               onClick={() => setOutlook("risk")}
               icon={<Activity className="h-3.5 w-3.5" />}
-              label="Risk"
+              label={t("intel.panel.risk")}
             />
           </div>
         </div>
@@ -147,13 +147,11 @@ export default function IntelligencePanel({
             <div className="rounded-xl bg-ink-800/60 border border-white/5 p-3">
               <RainfallChart rainfall={risk.rainfall} />
               <p className="mt-1.5 text-[10px] text-slate-500">
-                Observed rainfall (past days) and forecast rainfall (mm/day).
-                3-day antecedent {risk.rainfall.antecedent_3d_mm} mm · 7-day
-                forecast {risk.rainfall.forecast_7d_mm} mm.
+                {t("intel.panel.rainfallNote", { antecedent: risk.rainfall.antecedent_3d_mm, forecast: risk.rainfall.forecast_7d_mm })}
               </p>
             </div>
           ) : (
-            <Empty label="Rainfall data unavailable." />
+            <Empty label={t("intel.panel.rainfallUnavailable")} />
           )
         ) : (
           <ForecastTimeline pilot={pilot} />
@@ -169,7 +167,7 @@ export default function IntelligencePanel({
         >
           <span className="inline-flex items-center gap-2 text-[12px] font-medium">
             <ShieldCheck className="h-4 w-4 text-sky-400" />
-            Model confidence
+            {t("intel.panel.modelConfidence")}
           </span>
           <ChevronDown
             className={`h-4 w-4 text-slate-400 transition-transform ${
@@ -180,9 +178,7 @@ export default function IntelligencePanel({
         {confOpen && (
           <div className="mt-2 rounded-xl bg-ink-900/40 border border-white/5 p-3">
             <p className="text-[11px] text-slate-400 mb-2.5 leading-relaxed">
-              Validate flood-zone detection against SAR observations of past
-              events. These metrics describe agreement for the selected
-              reference event — not a guarantee for the current forecast.
+              {t("intel.panel.confidenceNote")}
             </p>
             <div className="flex items-center gap-1.5 mb-3 flex-wrap">
               {events.map((e) => (
@@ -198,24 +194,24 @@ export default function IntelligencePanel({
             </div>
             {validating && (
               <p className="text-[12px] text-slate-500">
-                Validating against SAR…
+                {t("intel.panel.validatingSar")}
               </p>
             )}
             {validation && !validating && (
               <>
                 <div className="grid grid-cols-3 gap-2">
-                  <Metric label="Precision" value={pct(validation.precision)} />
-                  <Metric label="Recall" value={pct(validation.recall)} />
-                  <Metric label="IoU" value={pct(validation.iou)} />
+                  <Metric label={t("intel.panel.precision")} value={pct(validation.precision)} />
+                  <Metric label={t("intel.panel.recall")} value={pct(validation.recall)} />
+                  <Metric label={t("intel.panel.iou")} value={pct(validation.iou)} />
                 </div>
                 <p className="mt-2 text-[10px] text-slate-500">
-                  Reference: {validation.event_label}.
+                  {t("intel.panel.reference", { event: validation.event_label })}
                 </p>
               </>
             )}
             {!validation && !validating && (
               <p className="text-[11px] text-slate-500">
-                Select a reference event to view validation metrics.
+                {t("intel.panel.selectReference")}
               </p>
             )}
           </div>
@@ -232,7 +228,7 @@ export default function IntelligencePanel({
           >
             <span className="inline-flex items-center gap-2 text-[12px] font-medium">
               <Info className="h-4 w-4 text-sky-400" />
-              Methodology &amp; sources
+              {t("intel.panel.methodologySources")}
             </span>
             <ChevronDown
               className={`h-4 w-4 text-slate-400 transition-transform ${
@@ -255,7 +251,7 @@ export default function IntelligencePanel({
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-1.5">
-                  Data sources
+                  {t("intel.panel.dataSources")}
                 </p>
                 <ul className="space-y-1.5">
                   {(risk.sources ?? []).map((s) => (
@@ -278,8 +274,7 @@ export default function IntelligencePanel({
               </div>
               {risk.updated_at && (
                 <p className="text-[10px] text-slate-500">
-                  Rainfall fetched {timeAgo(risk.updated_at)}. Historical and
-                  terrain layers are static; they are not live observations.
+                  {t("intel.panel.rainfallFetched", { time: timeAgo(risk.updated_at) })}
                 </p>
               )}
             </div>

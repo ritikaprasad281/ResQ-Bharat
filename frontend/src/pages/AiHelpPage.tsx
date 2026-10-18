@@ -51,13 +51,6 @@ type Msg = {
   error?: boolean;
 };
 
-const SUGGESTIONS = [
-  "Water is entering my house — what should I do right now?",
-  "How do I help an elderly person evacuate safely?",
-  "What should I carry when leaving my home?",
-  "How can I find safe drinking water after a flood?",
-];
-
 export default function AiHelpPage() {
   const { t } = useTranslation();
   const rl = useResponseLanguage();
@@ -87,6 +80,16 @@ export default function AiHelpPage() {
     [t]
   );
 
+  const SUGGESTIONS = useMemo(
+    () => [
+      t("aiHelp.suggestions.waterEntering"),
+      t("aiHelp.suggestions.elderly"),
+      t("aiHelp.suggestions.carry"),
+      t("aiHelp.suggestions.drinkingWater"),
+    ],
+    [t]
+  );
+
   const locationForApi = coords
     ? `${coords.lat.toFixed(5)}, ${coords.lon.toFixed(5)} (shared GPS)`
     : locationText.trim() || undefined;
@@ -107,7 +110,7 @@ export default function AiHelpPage() {
 
   function shareLocation() {
     if (!("geolocation" in navigator)) {
-      setLocError("Location is not supported on this device.");
+      setLocError(t("aiHelp.locationNotSupported"));
       return;
     }
     setLocating(true);
@@ -121,8 +124,8 @@ export default function AiHelpPage() {
         setLocating(false);
         setLocError(
           err.code === err.PERMISSION_DENIED
-            ? "Location permission denied — you can type your area instead."
-            : "Could not get your location — type your area instead."
+            ? t("aiHelp.locationDenied")
+            : t("aiHelp.locationFailed")
         );
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -186,7 +189,7 @@ export default function AiHelpPage() {
 
   function openMaps(query: string) {
     if (!hasLocation) {
-      setLocError("Add your area or share your location first.");
+      setLocError(t("aiHelp.addLocationFirst"));
       return;
     }
     const url = mapsSearchUrl(query, coords ?? locationText.trim());
@@ -205,7 +208,7 @@ export default function AiHelpPage() {
       tint: "text-rose-300",
       run: () => {
         openMaps("hospitals and emergency medical");
-        ask("Where is the nearest hospital or emergency medical help, and how do I reach it safely during a flood?");
+        ask(t("aiHelp.ask.hospital"));
       },
     },
     {
@@ -214,22 +217,20 @@ export default function AiHelpPage() {
       tint: "text-sky-300",
       run: () => {
         openMaps("flood relief shelter cyclone shelter community hall");
-        ask("Which flood shelters or relief centres might be available, and how do I confirm one is open?");
+        ask(t("aiHelp.ask.shelter"));
       },
     },
     {
       icon: Mountain,
       label: t("aiHelp.quick.higherGround"),
       tint: "text-emerald-300",
-      run: () =>
-        ask("Where can I find a safer, accessible high-ground location to evacuate to, and what should I check before going there?"),
+      run: () => ask(t("aiHelp.ask.higherGround")),
     },
     {
       icon: Route,
       label: t("aiHelp.quick.roads"),
       tint: "text-amber-300",
-      run: () =>
-        ask("Which roads or routes could be flooded in my area and how do I travel safely? Where can I check official road and flood updates?"),
+      run: () => ask(t("aiHelp.ask.roads")),
     },
     {
       icon: Phone,
@@ -251,8 +252,7 @@ export default function AiHelpPage() {
       icon: HeartPulse,
       label: t("aiHelp.quick.firstAid"),
       tint: "text-pink-300",
-      run: () =>
-        ask("Give me immediate first-aid and personal safety steps during a flood emergency."),
+      run: () => ask(t("aiHelp.ask.firstAid")),
     },
   ];
 
@@ -354,8 +354,7 @@ export default function AiHelpPage() {
           ) : (
             <p className="text-[11px] text-slate-500 flex items-start gap-1.5">
               <Info className="h-3.5 w-3.5 shrink-0 mt-px" />
-              Location is only used when you choose to share it, to tailor
-              guidance and open map searches. It is not stored or tracked.
+              {t("aiHelp.locationNote")}
             </p>
           )}
         </div>
@@ -384,8 +383,7 @@ export default function AiHelpPage() {
             ))}
           </div>
           <p className="mt-2 text-[11px] text-slate-500">
-            Map searches open your map app for the area you provide. The
-            assistant does not confirm live availability of any facility.
+            {t("aiHelp.quickNote")}
           </p>
         </section>
 
@@ -547,13 +545,13 @@ export default function AiHelpPage() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-rose-400" />
-              <h2 className="text-sm font-bold">Emergency contacts (India)</h2>
+              <h2 className="text-sm font-bold">{t("aiHelp.contactsIndia")}</h2>
             </div>
             <button
               onClick={() => setShowContacts((v) => !v)}
               className="text-[11px] text-slate-400 hover:text-slate-200"
             >
-              {showContacts ? "Hide" : "Show"}
+              {showContacts ? t("actions.hide") : t("actions.show")}
             </button>
           </div>
           {showContacts && (
@@ -587,8 +585,7 @@ export default function AiHelpPage() {
                 ))}
               </div>
               <p className="mt-2 text-[11px] text-slate-500">
-                These are national helplines. Local control-room numbers differ
-                by district — confirm your local number where possible.
+                {t("aiHelp.helplinesNote")}
               </p>
 
               <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
@@ -613,9 +610,7 @@ export default function AiHelpPage() {
         </section>
 
         <p className="text-[11px] text-slate-600 leading-relaxed">
-          AI-generated guidance for preparedness and personal safety — it does
-          not replace instructions from local authorities and cannot confirm
-          live shelter, hospital or road conditions. Validate before acting.
+          {t("aiHelp.bottomDisclaimer")}
         </p>
       </div>
     </div>

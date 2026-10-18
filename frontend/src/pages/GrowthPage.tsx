@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
@@ -193,6 +194,9 @@ type SortKey = "distance" | "area" | "priority" | "confidence";
 type Tab = "overview" | "diagnostics" | "exposure" | "methodology";
 
 export default function GrowthPage() {
+  const { t } = useTranslation();
+  const catLabel = (k: CatKey) => t(`growth.cat.${k}`);
+  const prioLabel = (p: Priority) => t(`growth.priority.${p}`);
   const [params, setParams] = useSearchParams();
   const [pilots, setPilots] = useState<Pilot[]>([]);
   const [selected, setSelected] = useState<string>(params.get("pilot") ?? "");
@@ -590,7 +594,7 @@ export default function GrowthPage() {
       <div className="flex-1 grid place-items-center p-4">
         <div className="glass rounded-2xl p-8 text-center max-w-sm">
           <AlertTriangle className="h-8 w-8 text-amber-400 mx-auto mb-3" />
-          <p className="font-semibold mb-1">Backend unavailable</p>
+          <p className="font-semibold mb-1">{t("growth.backendUnavailable")}</p>
           <p className="text-sm text-slate-400">{fatal}</p>
         </div>
       </div>
@@ -613,7 +617,7 @@ export default function GrowthPage() {
       key: "detected",
       icon: Satellite,
       value: fmt(kpi.detected),
-      label: "Detected changes",
+      label: t("growth.kpi.detected"),
       tone: "text-cyan-300",
       active:
         catFilter === "all" &&
@@ -631,7 +635,7 @@ export default function GrowthPage() {
       key: "near",
       icon: Ruler,
       value: fmt(kpi.near),
-      label: "Within 500 m of river",
+      label: t("growth.kpi.near"),
       tone: "text-sky-300",
       active: proxFilter === "le500",
       onClick: () => setProxFilter(proxFilter === "le500" ? "all" : "le500"),
@@ -640,7 +644,7 @@ export default function GrowthPage() {
       key: "hazard",
       icon: Waves,
       value: fmt(kpi.hazard),
-      label: "In modelled flood hazard",
+      label: t("growth.kpi.hazard"),
       tone: "text-rose-300",
       active: hazardOnly,
       onClick: () => setHazardOnly((v) => !v),
@@ -649,7 +653,7 @@ export default function GrowthPage() {
       key: "area",
       icon: LandPlot,
       value: `${fmt(Number(kpi.areaHa.toFixed(1)))} ha`,
-      label: "Changed area (estimate)",
+      label: t("growth.kpi.area"),
       tone: "text-emerald-300",
       active: false,
       onClick: () => setTab("exposure"),
@@ -658,7 +662,7 @@ export default function GrowthPage() {
       key: "high",
       icon: ShieldAlert,
       value: fmt(kpi.high),
-      label: "High-priority review",
+      label: t("growth.kpi.high"),
       tone: "text-amber-300",
       active: priorityFilter === "high",
       onClick: () =>
@@ -674,14 +678,13 @@ export default function GrowthPage() {
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-pink-500/10 border border-pink-500/20 px-2.5 py-0.5 text-[10px] text-pink-300">
               <Satellite className="h-3 w-3" />
-              Satellite-based development monitoring
+              {t("growth.badge")}
             </span>
             <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Floodplain Development Monitoring
+              {t("growth.title")}
             </h1>
             <p className="text-[12px] text-slate-400">
-              Candidate land-cover changes near river corridors — slide to
-              compare baseline vs recent imagery.
+              {t("growth.subtitle")}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -690,7 +693,7 @@ export default function GrowthPage() {
                 pilots={pilots}
                 value={selected}
                 onSelect={select}
-                placeholder="Search a city or river basin…"
+                placeholder={t("growth.searchPlaceholder")}
               />
             </div>
             <div className="flex items-center gap-2 text-[11px] text-slate-400">
@@ -707,7 +710,7 @@ export default function GrowthPage() {
                   }`}
                 />
                 {loading
-                  ? "Computing…"
+                  ? t("growth.computing")
                   : dataAt
                   ? `Live · ${timeAgo(dataAt)}`
                   : "—"}
@@ -756,8 +759,8 @@ export default function GrowthPage() {
             value={mobilePanel}
             onChange={(v) => setMobilePanel(v as "map" | "list")}
             options={[
-              { key: "map", label: "Workspace", icon: MapIcon },
-              { key: "list", label: `Detections (${visible.length})`, icon: Search },
+              { key: "map", label: t("growth.workspace"), icon: MapIcon },
+              { key: "list", label: `${t("growth.detections")} (${visible.length})`, icon: Search },
             ]}
           />
         </div>
@@ -775,8 +778,8 @@ export default function GrowthPage() {
                 value={view}
                 onChange={(v) => setView(v as "comparison" | "map")}
                 options={[
-                  { key: "comparison", label: "Compare", icon: GitCompareArrows },
-                  { key: "map", label: "Map", icon: MapIcon },
+                  { key: "comparison", label: t("growth.compare"), icon: GitCompareArrows },
+                  { key: "map", label: t("growth.map"), icon: MapIcon },
                 ]}
               />
               {view === "map" && (
@@ -787,7 +790,7 @@ export default function GrowthPage() {
                     title="Fit all results"
                   >
                     <Maximize2 className="h-3.5 w-3.5" />
-                    Fit all
+                    {t("growth.fitAll")}
                   </button>
                   <button
                     onClick={resetRegion}
@@ -795,7 +798,7 @@ export default function GrowthPage() {
                     title="Reset to study region"
                   >
                     <Crosshair className="h-3.5 w-3.5" />
-                    Region
+                    {t("growth.region")}
                   </button>
                 </div>
               )}
@@ -809,7 +812,7 @@ export default function GrowthPage() {
                     <div className="aspect-[3/2] w-full grid place-items-center bg-ink-900/60">
                       <div className="flex items-center gap-2 text-sm text-slate-400">
                         <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
-                        Building before/after composites…
+                        {t("growth.buildingComposites")}
                       </div>
                     </div>
                   )}
@@ -834,7 +837,7 @@ export default function GrowthPage() {
                         focus={focus}
                       />
                       <div className="absolute top-3 left-1/2 -translate-x-1/2 glass rounded-full px-3 py-1.5 text-[11px] text-slate-300">
-                        Comparison imagery unavailable — map overlay shown
+                        {t("growth.comparisonUnavailable")}
                       </div>
                     </div>
                   )}
@@ -857,7 +860,7 @@ export default function GrowthPage() {
               {loading && (
                 <div className="absolute top-3 left-1/2 -translate-x-1/2 glass rounded-full px-3 py-1.5 flex items-center gap-2 text-[11px]">
                   <Loader2 className="h-3.5 w-3.5 animate-spin text-pink-400" />
-                  Detecting change…
+                  {t("growth.detectingChange")}
                 </div>
               )}
 
@@ -867,7 +870,7 @@ export default function GrowthPage() {
                   <div className="glass rounded-xl px-3 py-2.5 space-y-1">
                     <div className="flex items-center justify-between gap-6 mb-0.5">
                       <span className="text-[10px] uppercase tracking-wide text-slate-500">
-                        Legend
+                        {t("growth.legend")}
                       </span>
                       <button
                         onClick={() => setLegendOpen(false)}
@@ -876,9 +879,9 @@ export default function GrowthPage() {
                         <X className="h-3 w-3" />
                       </button>
                     </div>
-                    <LegendRow color="bg-pink-500" label="New construction" />
-                    <LegendRow color="bg-amber-500" label="Settlement expansion" />
-                    <LegendRow color="bg-slate-400" label="Uncertain change" />
+                    <LegendRow color="bg-pink-500" label={catLabel("new")} />
+                    <LegendRow color="bg-amber-500" label={catLabel("settlement")} />
+                    <LegendRow color="bg-slate-400" label={catLabel("uncertain")} />
                   </div>
                 ) : (
                   <button
@@ -886,7 +889,7 @@ export default function GrowthPage() {
                     className="glass rounded-lg px-2 py-1.5 text-[10px] text-slate-300 inline-flex items-center gap-1"
                   >
                     <Info className="h-3 w-3" />
-                    Legend
+                    {t("growth.legend")}
                   </button>
                 )}
               </div>
@@ -926,7 +929,7 @@ export default function GrowthPage() {
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-semibold text-sm flex items-center gap-1.5">
                   <Search className="h-4 w-4 text-cyan-300" />
-                  Detection explorer
+                  {t("growth.explorer")}
                 </h3>
                 <div className="flex items-center gap-1">
                   <button
@@ -936,7 +939,7 @@ export default function GrowthPage() {
                     title="Export filtered results"
                   >
                     <Download className="h-3 w-3" />
-                    Filtered
+                    {t("growth.filtered")}
                   </button>
                   <button
                     onClick={() => exportCsv("all")}
@@ -955,7 +958,7 @@ export default function GrowthPage() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search coordinates or type…"
+                  placeholder={t("growth.coordPlaceholder")}
                   className="w-full rounded-lg bg-ink-900/60 border border-white/10 focus:border-cyan-500/50 outline-none pl-8 pr-2 py-1.5 text-[12px]"
                 />
               </div>
@@ -965,24 +968,24 @@ export default function GrowthPage() {
                 <Chip
                   active={catFilter === "all"}
                   onClick={() => setCatFilter("all")}
-                  label="All"
+                  label={t("growth.all")}
                 />
                 <Chip
                   active={catFilter === "new"}
                   onClick={() => setCatFilter("new")}
-                  label="New construction"
+                  label={catLabel("new")}
                   dot="bg-pink-500"
                 />
                 <Chip
                   active={catFilter === "settlement"}
                   onClick={() => setCatFilter("settlement")}
-                  label="Settlement"
+                  label={catLabel("settlement")}
                   dot="bg-amber-500"
                 />
                 <Chip
                   active={catFilter === "uncertain"}
                   onClick={() => setCatFilter("uncertain")}
-                  label="Uncertain"
+                  label={catLabel("uncertain")}
                   dot="bg-slate-400"
                 />
               </div>
@@ -1021,7 +1024,7 @@ export default function GrowthPage() {
                       : "border-white/10 bg-ink-900/60 text-slate-400"
                   }`}
                 >
-                  Hazard only
+                  {t("growth.hazardOnly")}
                 </button>
                 <div className="relative inline-flex items-center">
                   <ArrowUpDown className="absolute left-1.5 h-3 w-3 text-slate-500 pointer-events-none" />
@@ -1064,7 +1067,7 @@ export default function GrowthPage() {
                     }}
                     className="text-cyan-300 hover:underline"
                   >
-                    Clear filters
+                    {t("growth.clearFilters")}
                   </button>
                 )}
               </div>
@@ -1088,7 +1091,7 @@ export default function GrowthPage() {
                         PRIORITY_META[pick.priority].dot
                       }`}
                     />
-                    {PRIORITY_META[pick.priority].label} · #{pick.idx + 1}
+                    {prioLabel(pick.priority)} · #{pick.idx + 1}
                   </span>
                   <button
                     onClick={() => setPicked(null)}
@@ -1097,7 +1100,7 @@ export default function GrowthPage() {
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <Row k="Classification" v={CAT_META[pick.catKey].label} />
+                <Row k="Classification" v={catLabel(pick.catKey)} />
                 <Row
                   k="Review priority"
                   v={`${pick.score.toFixed(2)} / 1.00`}
@@ -1155,8 +1158,8 @@ export default function GrowthPage() {
                 <div className="h-full grid place-items-center text-center px-4">
                   <p className="text-sm text-slate-400">
                     {changes.length === 0
-                      ? "No corridor changes detected at this location."
-                      : "No detections match the current filters."}
+                      ? t("growth.noChanges")
+                      : t("growth.noMatch")}
                   </p>
                 </div>
               )}
@@ -1180,7 +1183,7 @@ export default function GrowthPage() {
                   className="inline-flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 disabled:opacity-40 hover:border-white/25"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
-                  Prev
+                  {t("growth.prev")}
                 </button>
                 <span className="text-slate-500">
                   Page {pageSafe} / {totalPages}
@@ -1190,7 +1193,7 @@ export default function GrowthPage() {
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   className="inline-flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 disabled:opacity-40 hover:border-white/25"
                 >
-                  Next
+                  {t("growth.next")}
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -1204,10 +1207,10 @@ export default function GrowthPage() {
             <div className="flex border-b border-white/5 overflow-x-auto">
               {(
                 [
-                  ["overview", "Overview"],
-                  ["diagnostics", "Detection diagnostics"],
-                  ["exposure", "Flood exposure"],
-                  ["methodology", "Methodology & data quality"],
+                  ["overview", t("growth.tabs.overview")],
+                  ["diagnostics", t("growth.tabs.diagnostics")],
+                  ["exposure", t("growth.tabs.exposure")],
+                  ["methodology", t("growth.tabs.methodology")],
                 ] as [Tab, string][]
               ).map(([k, label]) => (
                 <button
@@ -1237,7 +1240,7 @@ export default function GrowthPage() {
                           <BreakdownRow
                             key={k}
                             dot={CAT_META[k].dot}
-                            label={CAT_META[k].label}
+                            label={catLabel(k)}
                             value={changes.filter((c) => c.catKey === k).length}
                             total={changes.length}
                             onClick={() => setCatFilter(k)}
@@ -1298,7 +1301,7 @@ export default function GrowthPage() {
                         <BreakdownRow
                           key={k}
                           dot={PRIORITY_META[k].dot}
-                          label={PRIORITY_META[k].label}
+                          label={prioLabel(k)}
                           value={changes.filter((c) => c.priority === k).length}
                           total={changes.length}
                           onClick={() => setPriorityFilter(k)}
@@ -1546,6 +1549,7 @@ function DetectionRow({
   active: boolean;
   onClick: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       onClick={onClick}
@@ -1563,7 +1567,7 @@ function DetectionRow({
             }`}
           />
           <span className={`text-[11px] font-semibold truncate ${CAT_META[c.catKey].color}`}>
-            {CAT_META[c.catKey].label}
+            {t(`growth.cat.${c.catKey}`)}
           </span>
         </span>
         <span className="text-[11px] text-slate-300 shrink-0">

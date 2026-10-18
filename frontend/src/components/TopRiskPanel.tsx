@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Flame, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { TopRiskItem } from "../types";
 import { pct, riskColor } from "../lib";
 
@@ -18,23 +19,24 @@ export default function TopRiskPanel({
   loading,
   onSelect,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <section className="rounded-xl bg-ink-800/60 border border-white/5 p-3">
       <div className="flex items-center gap-2 mb-2.5">
         <Flame className="h-4 w-4 text-rose-400" />
         <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-          Top 3 flood-risk zones
+          {t("intel.topRisk.title")}
         </p>
         <span className="ml-auto flex items-center gap-1 text-[10px] text-emerald-400">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          live
+          {t("intel.topRisk.live")}
         </span>
       </div>
 
       {loading && items.length === 0 ? (
         <div className="flex items-center gap-2 text-[12px] text-slate-500 py-2">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-sky-400" />
-          Ranking the basin…
+          {t("intel.topRisk.ranking")}
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
@@ -64,7 +66,7 @@ export default function TopRiskPanel({
                     {it.tributary} · {shortName(it.name)}
                   </div>
                   <div className="text-[10px] text-slate-500">
-                    7d rain {it.forecast_7d_mm} mm
+                    {t("intel.topRisk.rain7d", { mm: it.forecast_7d_mm })}
                   </div>
                 </div>
                 <div className="text-right shrink-0">

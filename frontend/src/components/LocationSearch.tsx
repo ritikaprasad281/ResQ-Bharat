@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import { Search, MapPin, ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Pilot } from "../types";
 import { coverageOf } from "../lib";
 
@@ -15,9 +16,11 @@ export default function LocationSearch({
   pilots,
   value,
   onSelect,
-  placeholder = "Search city, river or state (e.g. Chennai, Godavari, Kerala)…",
+  placeholder,
   autoFocus,
 }: Props) {
+  const { t } = useTranslation();
+  const ph = placeholder ?? t("intel.search.placeholder");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -74,7 +77,7 @@ export default function LocationSearch({
             setOpen(true);
           }}
           placeholder={
-            selected && !open ? selected.name : placeholder
+            selected && !open ? selected.name : ph
           }
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-500"
         />
@@ -87,7 +90,7 @@ export default function LocationSearch({
       {open && (
         <div className="absolute z-40 mt-1.5 w-full max-h-72 overflow-y-auto rounded-xl bg-ink-900/95 backdrop-blur border border-white/10 shadow-2xl p-1.5">
           {groups.length === 0 && (
-            <p className="px-3 py-3 text-sm text-slate-500">No match.</p>
+            <p className="px-3 py-3 text-sm text-slate-500">{t("intel.search.noMatch")}</p>
           )}
           {groups.map(([river, items]) => (
             <div key={river} className="mb-1">

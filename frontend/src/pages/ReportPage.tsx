@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -33,11 +34,22 @@ const SEV_COLOR: Record<string, string> = {
 };
 
 const EMERGENCY = [
-  { label: "National Emergency", num: "112" },
-  { label: "Disaster (NDMA)", num: "1078" },
-  { label: "Ambulance", num: "108" },
-  { label: "Flood Control (Bihar)", num: "0612-2217305" },
+  { key: "national", num: "112" },
+  { key: "disaster", num: "1078" },
+  { key: "ambulance", num: "108" },
+  { key: "floodControl", num: "0612-2217305" },
 ];
+
+const HAZARD_KEYS: Record<string, string> = {
+  "River flooding": "riverFlooding",
+  "Urban waterlogging": "urbanWaterlogging",
+  "Embankment / bund breach": "embankmentBreach",
+  "People stranded": "peopleStranded",
+  "Road / bridge damage": "roadBridgeDamage",
+  "Power / communication outage": "powerOutage",
+  "Need rescue / relief": "needRescue",
+  Other: "other",
+};
 
 const empty: ReportInput = {
   reporter_name: "",
@@ -50,6 +62,7 @@ const empty: ReportInput = {
 };
 
 export default function ReportPage() {
+  const { t } = useTranslation();
   const [pilots, setPilots] = useState<Pilot[]>([]);
   const [form, setForm] = useState<ReportInput>(empty);
   const [submitting, setSubmitting] = useState(false);
@@ -80,7 +93,7 @@ export default function ReportPage() {
     e.preventDefault();
     setError("");
     if (!form.location.trim() || !form.reporter_name.trim()) {
-      setError("Please provide at least your name and the location.");
+      setError(t("report.errNameLocation"));
       return;
     }
     setSubmitting(true);
@@ -91,7 +104,7 @@ export default function ReportPage() {
       loadReports();
       setTimeout(() => setDone(false), 4000);
     } catch {
-      setError("Could not submit the report. Please try again.");
+      setError(t("report.errSubmit"));
     } finally {
       setSubmitting(false);
     }
@@ -102,12 +115,10 @@ export default function ReportPage() {
       <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8">
         <div className="flex items-center gap-2 mb-1">
           <LifeBuoy className="h-6 w-6 text-rose-400" />
-          <h1 className="text-2xl font-extrabold">Report &amp; Respond</h1>
+          <h1 className="text-2xl font-extrabold">{t("report.title")}</h1>
         </div>
         <p className="text-sm text-slate-400 mb-6 max-w-2xl">
-          During a live flood, report what you see on the ground. Your reports
-          help responders and neighbours act faster. For life-threatening
-          emergencies, call the numbers below first.
+          {t("report.intro")}
         </p>
 
         {/* Emergency contacts */}
@@ -119,7 +130,8 @@ export default function ReportPage() {
               className="glass rounded-xl p-3 hover:border-rose-500/40 border border-white/5 transition"
             >
               <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                <Phone className="h-3.5 w-3.5 text-rose-400" /> {c.label}
+                <Phone className="h-3.5 w-3.5 text-rose-400" />{" "}
+                {t(`report.emergency.${c.key}`)}
               </div>
               <div className="text-lg font-bold">{c.num}</div>
             </a>
@@ -130,45 +142,45 @@ export default function ReportPage() {
           {/* Form */}
           <form onSubmit={submit} className="glass rounded-2xl p-5 space-y-4">
             <h2 className="font-bold flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-400" /> Submit a
-              hazard report
+              <AlertTriangle className="h-4 w-4 text-amber-400" />{" "}
+              {t("report.submitHazard")}
             </h2>
 
             <div className="grid sm:grid-cols-2 gap-3">
-              <Field label="Your name *">
+              <Field label={t("report.yourName")}>
                 <input
                   value={form.reporter_name}
                   onChange={(e) => set("reporter_name", e.target.value)}
                   className="inp"
-                  placeholder="Full name"
+                  placeholder={t("report.yourNamePh")}
                 />
               </Field>
-              <Field label="Contact (phone / optional)">
+              <Field label={t("report.contact")}>
                 <input
                   value={form.contact}
                   onChange={(e) => set("contact", e.target.value)}
                   className="inp"
-                  placeholder="Phone or email"
+                  placeholder={t("report.contactPh")}
                 />
               </Field>
             </div>
 
-            <Field label="Location (village / town / landmark) *">
+            <Field label={t("report.location")}>
               <input
                 value={form.location}
                 onChange={(e) => set("location", e.target.value)}
                 className="inp"
-                placeholder="e.g. Danapur, near Ganga embankment"
+                placeholder={t("report.locationPh")}
               />
             </Field>
 
-            <Field label="Nearest monitored river zone (optional)">
+            <Field label={t("report.nearestZone")}>
               <select
                 value={form.pilot ?? ""}
                 onChange={(e) => set("pilot", e.target.value || null)}
                 className="inp"
               >
-                <option value="">— not sure —</option>
+                <option value="">{t("report.notSure")}</option>
                 {pilots.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -178,7 +190,7 @@ export default function ReportPage() {
             </Field>
 
             <div className="grid sm:grid-cols-2 gap-3">
-              <Field label="Hazard type">
+              <Field label={t("report.hazardType")}>
                 <select
                   value={form.hazard_type}
                   onChange={(e) => set("hazard_type", e.target.value)}
@@ -186,33 +198,33 @@ export default function ReportPage() {
                 >
                   {HAZARDS.map((h) => (
                     <option key={h} value={h}>
-                      {h}
+                      {t(`report.hazards.${HAZARD_KEYS[h]}`)}
                     </option>
                   ))}
                 </select>
               </Field>
-              <Field label="Severity">
+              <Field label={t("report.severity")}>
                 <select
                   value={form.severity}
                   onChange={(e) => set("severity", e.target.value)}
-                  className="inp capitalize"
+                  className="inp"
                 >
                   {SEVERITIES.map((s) => (
                     <option key={s} value={s}>
-                      {s}
+                      {t(`report.severities.${s}`)}
                     </option>
                   ))}
                 </select>
               </Field>
             </div>
 
-            <Field label="What is happening?">
+            <Field label={t("report.whatHappening")}>
               <textarea
                 value={form.description}
                 onChange={(e) => set("description", e.target.value)}
                 rows={3}
                 className="inp resize-none"
-                placeholder="Describe water level, people affected, help needed…"
+                placeholder={t("report.whatHappeningPh")}
               />
             </Field>
 
@@ -234,28 +246,27 @@ export default function ReportPage() {
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              {done ? "Report submitted — thank you" : "Submit report"}
+              {done ? t("report.submitted") : t("report.submit")}
             </button>
             <p className="text-[11px] text-slate-600">
-              Do not rely on this form for rescue. Call emergency services for
-              life-threatening situations.
+              {t("report.noRescue")}
             </p>
           </form>
 
           {/* Recent reports */}
           <div className="glass rounded-2xl p-5">
             <h2 className="font-bold flex items-center gap-2 mb-3">
-              <Clock className="h-4 w-4 text-sky-400" /> Recent community
-              reports
+              <Clock className="h-4 w-4 text-sky-400" />{" "}
+              {t("report.recentReports")}
             </h2>
             {loadingList ? (
               <div className="flex items-center gap-2 text-sm text-slate-400 py-6">
                 <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
-                Loading reports…
+                {t("report.loadingReports")}
               </div>
             ) : reports.length === 0 ? (
               <p className="text-sm text-slate-500 py-6">
-                No reports yet. Be the first to report conditions in your area.
+                {t("report.noReports")}
               </p>
             ) : (
               <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">

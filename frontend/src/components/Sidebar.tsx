@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Droplets, Loader2, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Pilot, Risk, TopRiskItem } from "../types";
 import { pct, riskColor, coverageOf, timeAgo } from "../lib";
 import TopRiskPanel from "./TopRiskPanel";
@@ -22,13 +23,14 @@ export default function Sidebar({
   topRisk,
   topLoading,
 }: Props) {
+  const { t } = useTranslation();
   const sel = pilots.find((p) => p.id === selected);
   const cov = coverageOf(sel?.coverage);
   return (
     <aside className="glass w-full h-full shrink-0 flex flex-col gap-4 p-4 overflow-y-auto lg:border-r border-white/5">
       <div>
         <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-2">
-          Select location
+          {t("intel.sidebar.selectLocation")}
         </p>
         <LocationSearch pilots={pilots} value={selected} onSelect={onSelect} />
         {sel && (
@@ -62,11 +64,11 @@ export default function Sidebar({
       {!risk ? (
         <div className="rounded-xl bg-ink-800/60 border border-white/5 p-4">
           <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-3">
-            Live flood risk
+            {t("intel.sidebar.liveFloodRisk")}
           </p>
           <div className="flex items-center gap-3 text-[12px] text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
-            Computing risk…
+            {t("intel.sidebar.computingRisk")}
           </div>
         </div>
       ) : (
@@ -77,7 +79,7 @@ export default function Sidebar({
           className="rounded-xl bg-ink-800/60 border border-white/5 p-4"
         >
           <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-3">
-            Live flood risk
+            {t("intel.sidebar.liveFloodRisk")}
           </p>
           <div className="flex items-center gap-4">
             <RiskRing value={risk.probability} level={risk.level} />
@@ -89,35 +91,33 @@ export default function Sidebar({
                 {risk.level}
               </div>
               <div className="text-[11px] text-slate-400">
-                {pct(risk.probability)} modelled probability
+                {pct(risk.probability)} {t("risk.modelledProbability")}
               </div>
             </div>
           </div>
           <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
             <Droplets className="h-3.5 w-3.5 text-sky-400" />
-            7-day forecast: {risk.rainfall.forecast_7d_mm} mm
+            {t("intel.sidebar.forecast7d", { mm: risk.rainfall.forecast_7d_mm })}
           </div>
           {risk.updated_at && (
             <div className="mt-1 text-[10px] text-slate-500">
-              Rainfall updated {timeAgo(risk.updated_at)} · Open-Meteo
+              {t("intel.sidebar.rainfallUpdated", { time: timeAgo(risk.updated_at) })}
             </div>
           )}
           {risk.data_quality && !risk.data_quality.rainfall_complete && (
             <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 px-2 py-1.5 text-[10px] text-amber-200/90 leading-relaxed">
               <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
-              Some rainfall days are missing from the feed, so this score may be
-              understated. Treat it as provisional.
+              {t("intel.sidebar.missingDays")}
             </div>
           )}
           <p className="mt-2 text-[10px] text-slate-500 leading-relaxed">
-            Model estimate from rainfall &amp; terrain susceptibility — a
-            relative index, not a calibrated probability.
+            {t("intel.sidebar.modelEstimate")}
           </p>
         </motion.div>
       )}
 
       <p className="mt-auto text-[10px] text-slate-600 leading-relaxed">
-        AI-generated analysis — validate before operational use.
+        {t("intel.sidebar.disclaimer")}
       </p>
     </aside>
   );

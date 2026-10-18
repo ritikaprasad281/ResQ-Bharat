@@ -5,6 +5,8 @@ prone locations across India. Always grounded strictly on the numbers we pass in
 from __future__ import annotations
 
 import json
+import random
+import time
 
 from google import genai
 from google.genai import errors as genai_errors
@@ -77,31 +79,52 @@ def _lang_clause(language: str) -> str:
     )
 
 
-def _generate(prompt: str) -> str:
+# Transient overloads (503) and rate limits (429) are common when a model
+# spikes, so retry the whole model list a few times with exponential backoff
+# before surfacing an error. Models that return 404/permission errors are
+# dropped from later passes since retrying them cannot help.
+_MAX_PASSES = 3
+
+
+def _generate_with_fallback(contents) -> str:
     client = _get_client()
     last_err: Exception | None = None
-    for model in MODELS:
-        try:
-            resp = client.models.generate_content(model=model, contents=prompt)
-            return (resp.text or "").strip()
-        except (genai_errors.ServerError, genai_errors.ClientError) as exc:
-            last_err = exc  # overloaded or unavailable -> try next model
-            continue
-    raise RuntimeError(f"All Gemini models failed. Last error: {last_err}")
+    dead_models: set[str] = set()
+    for attempt in range(_MAX_PASSES):
+        saw_transient = False
+        for model in MODELS:
+            if model in dead_models:
+                continue
+            try:
+                resp = client.models.generate_content(model=model, contents=contents)
+                text = (resp.text or "").strip()
+                if text:
+                    return text
+                last_err = RuntimeError(f"{model} returned an empty response")
+            except genai_errors.ServerError as exc:
+                last_err = exc  # overloaded / 5xx -> transient, try next model
+                saw_transient = True
+            except genai_errors.ClientError as exc:
+                last_err = exc
+                status = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+                if status == 429:
+                    saw_transient = True  # rate limited -> back off and retry
+                else:
+                    dead_models.add(model)  # 404 / 400 / 403 -> stop retrying it
+        if not saw_transient or len(dead_models) >= len(MODELS):
+            break
+        if attempt < _MAX_PASSES - 1:
+            time.sleep(min(2 ** attempt, 8) + random.random())
+    raise RuntimeError(f"All Gemini models failed after retries. Last error: {last_err}")
+
+
+def _generate(prompt: str) -> str:
+    return _generate_with_fallback(prompt)
 
 
 def _generate_parts(parts: list) -> str:
     """Multimodal generate (e.g. image + text), with the same model fallback."""
-    client = _get_client()
-    last_err: Exception | None = None
-    for model in MODELS:
-        try:
-            resp = client.models.generate_content(model=model, contents=parts)
-            return (resp.text or "").strip()
-        except (genai_errors.ServerError, genai_errors.ClientError) as exc:
-            last_err = exc
-            continue
-    raise RuntimeError(f"All Gemini models failed. Last error: {last_err}")
+    return _generate_with_fallback(parts)
 
 
 def generate_briefing(context: dict, language: str = "en") -> str:

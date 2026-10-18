@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import {
   Bar,
@@ -78,6 +79,7 @@ function rowToPilot(r: {
 }
 
 export default function AgriLossPage() {
+  const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
   const [pilots, setPilots] = useState<Pilot[]>([]);
   const [summary, setSummary] = useState<AgriLossSummary | null>(null);
@@ -261,16 +263,13 @@ export default function AgriLossPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 text-emerald-300 text-xs font-semibold uppercase tracking-wide">
-                <Sprout className="h-4 w-4" /> Agricultural Loss Assessment
+                <Sprout className="h-4 w-4" /> {t("agri.badge")}
               </div>
               <h1 className="text-2xl font-bold mt-1">
-                Flood-related crop loss across India
+                {t("agri.title")}
               </h1>
               <p className="text-sm text-slate-400 max-w-2xl mt-1">
-                Model-estimated agricultural damage from flood exposure —
-                hectares of affected farmland and indicative monetary loss in ₹,
-                derived from satellite land cover and the ResQ&nbsp;Bharat flood
-                model. All figures are estimates, not official damage surveys.
+                {t("agri.subtitle")}
               </p>
             </div>
             <div className="w-full sm:w-72">
@@ -283,8 +282,7 @@ export default function AgriLossPage() {
           </div>
           <div className="flex items-center gap-2 text-[11px] text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-            Estimates are indicative and must not be used as a substitute for
-            official agricultural damage surveys or compensation assessments.
+            {t("agri.disclaimer")}
           </div>
         </header>
 
@@ -306,38 +304,38 @@ export default function AgriLossPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 <Kpi
                   icon={<LandPlot className="h-4 w-4" />}
-                  label="Exposed cropland"
+                  label={t("agri.kpi.exposed")}
                   value={formatHa(summary.total_exposed_cropland_ha)}
-                  sub="satellite-measured"
+                  sub={t("agri.kpi.exposedSub")}
                   tone="sky"
                 />
                 <Kpi
                   icon={<Leaf className="h-4 w-4" />}
-                  label="Est. damaged area"
+                  label={t("agri.kpi.damaged")}
                   value={formatHa(summary.total_damaged_cropland_ha)}
-                  sub="model estimate"
+                  sub={t("agri.kpi.damagedSub")}
                   tone="amber"
                 />
                 <Kpi
                   icon={<IndianRupee className="h-4 w-4" />}
-                  label="Est. monetary loss"
+                  label={t("agri.kpi.loss")}
                   value={formatINRCompact(summary.total_estimated_loss_inr)}
-                  sub="indicative"
+                  sub={t("agri.kpi.lossSub")}
                   tone="rose"
                   title={formatINRFull(summary.total_estimated_loss_inr)}
                 />
                 <Kpi
                   icon={<MapPin className="h-4 w-4" />}
-                  label="Affected locations"
+                  label={t("agri.kpi.locations")}
                   value={`${summary.locations_analysed}`}
-                  sub={`of ${summary.locations_total} monitored`}
+                  sub={t("agri.kpi.locationsSub", { total: summary.locations_total })}
                   tone="emerald"
                 />
                 <Kpi
                   icon={<Sprout className="h-4 w-4" />}
-                  label="Crop types affected"
+                  label={t("agri.kpi.cropTypes")}
                   value={`${summary.crop_types_affected}`}
-                  sub={`${summary.rivers_affected} rivers`}
+                  sub={t("agri.kpi.cropTypesSub", { rivers: summary.rivers_affected })}
                   tone="violet"
                 />
               </div>
@@ -345,7 +343,7 @@ export default function AgriLossPage() {
               {/* Severity distribution */}
               {sev && (
                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="text-slate-400">Loss severity:</span>
+                  <span className="text-slate-400">{t("agri.lossSeverity")}</span>
                   {SEVERITY_ORDER.map((lvl) => (
                     <button
                       key={lvl}
@@ -368,7 +366,7 @@ export default function AgriLossPage() {
                   ))}
                   {summary.locations_pending > 0 && (
                     <span className="text-slate-500">
-                      · {summary.locations_pending} not yet computed
+                      · {t("agri.notComputed", { count: summary.locations_pending })}
                     </span>
                   )}
                 </div>
@@ -381,9 +379,7 @@ export default function AgriLossPage() {
         {summary && summary.locations_analysed === 0 && !loadingSummary && (
           <div className="rounded-xl border border-white/10 bg-ink-800/40 p-6 text-center text-sm text-slate-300">
             <Info className="h-5 w-5 mx-auto mb-2 text-sky-300" />
-            No agricultural-loss estimates have been computed yet. Select a
-            location above to generate its first estimate — it will then appear
-            in the table, map and charts below.
+            {t("agri.emptyState")}
           </div>
         )}
 
@@ -405,14 +401,14 @@ export default function AgriLossPage() {
                       <span className="font-semibold text-sm">{detail.name}</span>
                       <SeverityPill level={detail.severity.level} />
                     </div>
-                    <Row label="Exposed cropland" value={formatHa(detail.exposed_cropland_ha)} />
-                    <Row label="Est. damaged" value={formatHa(detail.damaged_cropland_ha)} />
+                    <Row label={t("agri.row.exposedCropland")} value={formatHa(detail.exposed_cropland_ha)} />
+                    <Row label={t("agri.row.estDamaged")} value={formatHa(detail.damaged_cropland_ha)} />
                     <Row
-                      label="Est. loss"
+                      label={t("agri.row.estLoss")}
                       value={formatINRCompact(detail.estimated_loss_inr)}
                       title={formatINRFull(detail.estimated_loss_inr)}
                     />
-                    <Row label="Primary crop" value={detail.primary_crop ?? "—"} />
+                    <Row label={t("agri.row.primaryCrop")} value={detail.primary_crop ?? "—"} />
                     <div className="pt-1 text-[10px] text-slate-400 flex items-center gap-1">
                       <span
                         className="h-1.5 w-1.5 rounded-full"
@@ -423,12 +419,12 @@ export default function AgriLossPage() {
                   </div>
                 )}
                 <div className="absolute right-3 bottom-3 rounded-lg bg-ink-900/85 border border-white/10 px-2.5 py-1.5 text-[10px] text-slate-300 flex items-center gap-2">
-                  <Layers className="h-3 w-3" /> Flood-prone zones (context)
+                  <Layers className="h-3 w-3" /> {t("agri.floodZonesContext")}
                 </div>
               </>
             ) : (
               <div className="h-full grid place-items-center text-slate-500 text-sm">
-                Select a location to view its flood-prone farmland
+                {t("agri.selectToView")}
               </div>
             )}
           </div>
@@ -437,7 +433,7 @@ export default function AgriLossPage() {
           <div className="rounded-xl border border-white/10 bg-ink-800/40 p-4 space-y-3 overflow-y-auto max-h-[560px]">
             {detailLoading ? (
               <div className="flex items-center gap-2 text-sm text-slate-400 py-8 justify-center">
-                <Loader2 className="h-4 w-4 animate-spin" /> Computing estimate…
+                <Loader2 className="h-4 w-4 animate-spin" /> {t("agri.computingEstimate")}
               </div>
             ) : detailError ? (
               <div className="text-sm text-rose-300 py-6 text-center">
@@ -453,26 +449,27 @@ export default function AgriLossPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <Stat label="Total cropland" value={formatHa(detail.cropland_ha)} />
+                  <Stat label={t("agri.stat.totalCropland")} value={formatHa(detail.cropland_ha)} />
                   <Stat
-                    label="Exposed to flooding"
+                    label={t("agri.stat.exposedToFlooding")}
                     value={formatHa(detail.exposed_cropland_ha)}
                   />
                   <Stat
-                    label="Est. damaged"
+                    label={t("agri.stat.estDamaged")}
                     value={formatHa(detail.damaged_cropland_ha)}
-                    hint={`${Math.round(detail.damage_fraction_range.low * 100)}–${Math.round(
-                      detail.damage_fraction_range.high * 100
-                    )}% damage range`}
+                    hint={t("agri.stat.damageRange", {
+                      low: Math.round(detail.damage_fraction_range.low * 100),
+                      high: Math.round(detail.damage_fraction_range.high * 100),
+                    })}
                   />
                   <Stat
-                    label="Loss per hectare"
+                    label={t("agri.stat.lossPerHa")}
                     value={formatINRCompact(detail.loss_per_hectare_inr)}
                   />
                 </div>
 
                 <div className="rounded-lg bg-ink-900/60 border border-white/5 p-2.5">
-                  <div className="text-[11px] text-slate-400">Estimated crop loss</div>
+                  <div className="text-[11px] text-slate-400">{t("agri.estimatedCropLoss")}</div>
                   <div
                     className="text-lg font-bold"
                     title={formatINRFull(detail.estimated_loss_inr)}
@@ -480,7 +477,7 @@ export default function AgriLossPage() {
                     {formatINRCompact(detail.estimated_loss_inr)}
                   </div>
                   <div className="text-[10px] text-slate-500">
-                    range {formatINRCompact(detail.estimated_loss_range_inr.low)} –{" "}
+                    {t("agri.range")} {formatINRCompact(detail.estimated_loss_range_inr.low)} –{" "}
                     {formatINRCompact(detail.estimated_loss_range_inr.high)}
                   </div>
                 </div>
@@ -488,7 +485,7 @@ export default function AgriLossPage() {
                 {/* Crop-wise breakdown */}
                 <div>
                   <div className="text-[11px] text-slate-400 mb-1">
-                    Crop-wise estimate (regional cropping-mix assumption)
+                    {t("agri.cropWiseEstimate")}
                   </div>
                   <div className="space-y-1">
                     {detail.crops
@@ -524,7 +521,7 @@ export default function AgriLossPage() {
                 {/* Assumptions & provenance */}
                 <details className="text-[11px] text-slate-400">
                   <summary className="cursor-pointer text-slate-300">
-                    Assumptions, methodology &amp; sources
+                    {t("agri.assumptions")}
                   </summary>
                   <div className="mt-2 space-y-2">
                     <p>
@@ -561,7 +558,7 @@ export default function AgriLossPage() {
                     <p className="text-slate-500 italic">{detail.disclaimer}</p>
                     {detail.updated_at && (
                       <p className="text-slate-500">
-                        Computed {timeAgo(detail.updated_at)}
+                        {t("agri.computed", { time: timeAgo(detail.updated_at) })}
                       </p>
                     )}
                   </div>
@@ -569,7 +566,7 @@ export default function AgriLossPage() {
               </>
             ) : (
               <div className="text-sm text-slate-500 py-8 text-center">
-                Select a location to see its full breakdown.
+                {t("agri.selectToSee")}
               </div>
             )}
           </div>
@@ -578,7 +575,7 @@ export default function AgriLossPage() {
         {/* Charts */}
         {filtered.length > 0 && (
           <div className="grid lg:grid-cols-3 gap-4">
-            <ChartCard title="Top locations by estimated loss (₹ crore)">
+            <ChartCard title={t("agri.charts.topLocations")}>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart
                   data={topLocations}
@@ -607,7 +604,7 @@ export default function AgriLossPage() {
               </ResponsiveContainer>
             </ChartCard>
 
-            <ChartCard title="State-wise exposed cropland (ha)">
+            <ChartCard title={t("agri.charts.stateWise")}>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart
                   data={byState}
@@ -635,8 +632,8 @@ export default function AgriLossPage() {
             <ChartCard
               title={
                 detail
-                  ? `Crop-wise loss — ${shortName(detail.name)} (₹ lakh)`
-                  : "Crop-wise loss (select a location)"
+                  ? t("agri.charts.cropWiseFor", { name: shortName(detail.name) })
+                  : t("agri.charts.cropWiseSelect")
               }
             >
               {cropBreakdown.length ? (
@@ -665,13 +662,13 @@ export default function AgriLossPage() {
                 </ResponsiveContainer>
               ) : (
                 <div className="h-[200px] grid place-items-center text-xs text-slate-500">
-                  No crop-wise data for this selection
+                  {t("agri.charts.noCropWise")}
                 </div>
               )}
             </ChartCard>
 
             <ChartCard
-              title="Damaged area vs estimated loss by location"
+              title={t("agri.charts.scatter")}
               className="lg:col-span-3"
             >
               <ResponsiveContainer width="100%" height={220}>
@@ -719,16 +716,16 @@ export default function AgriLossPage() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search state, district, river…"
+                placeholder={t("agri.table.searchPlaceholder")}
                 className="w-full bg-ink-900/60 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-sm outline-none focus:border-sky-500/50"
               />
             </div>
-            <Select value={stateFilter} onChange={setStateFilter} label="All states" options={states} />
-            <Select value={cropFilter} onChange={setCropFilter} label="All crops" options={crops} />
+            <Select value={stateFilter} onChange={setStateFilter} label={t("agri.table.allStates")} options={states} />
+            <Select value={cropFilter} onChange={setCropFilter} label={t("agri.table.allCrops")} options={crops} />
             <Select
               value={severityFilter}
               onChange={setSeverityFilter}
-              label="All severity"
+              label={t("agri.table.allSeverity")}
               options={SEVERITY_ORDER}
               render={(o) => SEVERITY_LABELS[o] ?? o}
             />
@@ -747,10 +744,10 @@ export default function AgriLossPage() {
             >
               <ArrowUpDown className="h-3.5 w-3.5" />
               {sortKey === "estimated_loss_inr"
-                ? "Loss"
+                ? t("agri.table.sortLoss")
                 : sortKey === "exposed_cropland_ha"
-                ? "Exposed area"
-                : "Damaged area"}
+                ? t("agri.table.sortExposed")
+                : t("agri.table.sortDamaged")}
             </button>
             {(query || stateFilter || cropFilter || severityFilter) && (
               <button
@@ -762,7 +759,7 @@ export default function AgriLossPage() {
                 }}
                 className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white"
               >
-                <X className="h-3.5 w-3.5" /> Clear
+                <X className="h-3.5 w-3.5" /> {t("actions.clear")}
               </button>
             )}
           </div>
@@ -771,15 +768,15 @@ export default function AgriLossPage() {
             <table className="w-full text-xs">
               <thead className="text-slate-400 border-b border-white/10">
                 <tr className="text-left">
-                  <th className="px-3 py-2 font-medium">State</th>
-                  <th className="px-3 py-2 font-medium">District / River</th>
-                  <th className="px-3 py-2 font-medium">Primary crop</th>
-                  <th className="px-3 py-2 font-medium text-right">Exposed (ha)</th>
-                  <th className="px-3 py-2 font-medium text-right">Damaged (ha)</th>
-                  <th className="px-3 py-2 font-medium text-right">Est. loss</th>
-                  <th className="px-3 py-2 font-medium text-right">₹/ha</th>
-                  <th className="px-3 py-2 font-medium">Severity</th>
-                  <th className="px-3 py-2 font-medium">Confidence</th>
+                  <th className="px-3 py-2 font-medium">{t("agri.table.state")}</th>
+                  <th className="px-3 py-2 font-medium">{t("agri.table.districtRiver")}</th>
+                  <th className="px-3 py-2 font-medium">{t("agri.table.primaryCrop")}</th>
+                  <th className="px-3 py-2 font-medium text-right">{t("agri.table.exposedHa")}</th>
+                  <th className="px-3 py-2 font-medium text-right">{t("agri.table.damagedHa")}</th>
+                  <th className="px-3 py-2 font-medium text-right">{t("agri.table.estLoss")}</th>
+                  <th className="px-3 py-2 font-medium text-right">{t("agri.table.perHa")}</th>
+                  <th className="px-3 py-2 font-medium">{t("agri.table.severity")}</th>
+                  <th className="px-3 py-2 font-medium">{t("agri.table.confidence")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -823,7 +820,7 @@ export default function AgriLossPage() {
                           className="h-1.5 w-1.5 rounded-full"
                           style={{ background: coverageOf(r.coverage).dot }}
                         />
-                        estimated
+                        {t("agri.table.estimated")}
                       </span>
                     </td>
                   </tr>
@@ -832,8 +829,8 @@ export default function AgriLossPage() {
                   <tr>
                     <td colSpan={9} className="px-3 py-8 text-center text-slate-500">
                       {rows.length === 0
-                        ? "No estimates computed yet."
-                        : "No locations match the current filters."}
+                        ? t("agri.table.noneComputed")
+                        : t("agri.table.noneMatch")}
                     </td>
                   </tr>
                 )}
@@ -844,8 +841,11 @@ export default function AgriLossPage() {
           {filtered.length > PAGE_SIZE && (
             <div className="p-3 flex items-center justify-between text-xs text-slate-400 border-t border-white/10">
               <span>
-                {(page - 1) * PAGE_SIZE + 1}–
-                {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
+                {t("agri.table.pageRange", {
+                  from: (page - 1) * PAGE_SIZE + 1,
+                  to: Math.min(page * PAGE_SIZE, filtered.length),
+                  total: filtered.length,
+                })}
               </span>
               <div className="flex items-center gap-1">
                 <button
@@ -871,7 +871,7 @@ export default function AgriLossPage() {
         </section>
 
         <p className="text-[11px] text-slate-500 pb-4">
-          {summary?.disclaimer} AI-generated analysis — please validate.
+          {summary?.disclaimer} {t("agri.bottomDisclaimer")}
         </p>
       </div>
     </div>
@@ -1022,14 +1022,15 @@ function Select({
 }
 
 function ErrorBox({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-200 flex items-center justify-between">
-      <span>Could not load the agricultural-loss summary.</span>
+      <span>{t("agri.errorLoad")}</span>
       <button
         onClick={onRetry}
         className="rounded-lg bg-rose-600 hover:bg-rose-500 px-3 py-1.5 text-white text-xs"
       >
-        Retry
+        {t("actions.retry")}
       </button>
     </div>
   );

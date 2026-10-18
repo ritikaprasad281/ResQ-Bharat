@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   Loader2,
@@ -51,6 +52,7 @@ function useMediaQuery(query: string): boolean {
 }
 
 export default function ExplorePage() {
+  const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
   const [pilots, setPilots] = useState<Pilot[]>([]);
   const [selected, setSelected] = useState<string>(params.get("pilot") ?? "");
@@ -102,7 +104,7 @@ export default function ExplorePage() {
             ""
         );
       })
-      .catch(() => setFatal("Cannot reach the backend API."));
+      .catch(() => setFatal(t("intel.cannotReach")));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -138,7 +140,7 @@ export default function ExplorePage() {
         setRisk(r);
         setDamage(d);
       })
-      .catch(() => active && setFatal("Failed loading location data."))
+      .catch(() => active && setFatal(t("intel.loadFailed")))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
@@ -191,14 +193,14 @@ export default function ExplorePage() {
       <div className="flex-1 grid place-items-center p-4">
         <div className="glass rounded-2xl p-8 text-center max-w-sm">
           <AlertTriangle className="h-8 w-8 text-amber-400 mx-auto mb-3" />
-          <p className="font-semibold mb-1">Backend unavailable</p>
+          <p className="font-semibold mb-1">{t("intel.backendUnavailable")}</p>
           <p className="text-sm text-slate-400">{fatal}</p>
         </div>
       </div>
     );
   }
 
-  const regionName = pilot?.name ?? "the selected region";
+  const regionName = pilot?.name ?? t("intel.selectedRegion");
 
   const mapPane = (
     <div className="relative flex-1 min-h-0">
@@ -215,7 +217,7 @@ export default function ExplorePage() {
       {loading && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 glass rounded-full px-4 py-2 flex items-center gap-2 text-xs sm:text-sm">
           <Loader2 className="h-4 w-4 animate-spin text-sky-400 shrink-0" />
-          Computing flood zones…
+          {t("intel.computingZones")}
         </div>
       )}
       <Legend open={legendOpen} onToggle={() => setLegendOpen((v) => !v)} />
@@ -227,7 +229,7 @@ export default function ExplorePage() {
       {!compact && (
         <button
           onClick={() => setSidebarCollapsed((v) => !v)}
-          title={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+          title={sidebarCollapsed ? t("intel.showSidebar") : t("intel.hideSidebar")}
           className="grid place-items-center h-8 w-8 rounded-lg border border-white/10 bg-ink-900/60 hover:border-white/25 text-slate-300"
         >
           {sidebarCollapsed ? (
@@ -249,24 +251,23 @@ export default function ExplorePage() {
           className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-ink-900/60 hover:border-white/25 px-2.5 py-1.5 text-[12px] text-slate-200"
         >
           <Layers className="h-3.5 w-3.5" />
-          Layers
+          {t("intel.layers")}
           <ChevronDown className="h-3 w-3 text-slate-500" />
         </button>
         {layersOpen && (
           <div className="absolute z-20 mt-1 w-52 rounded-xl border border-white/10 bg-ink-900/95 backdrop-blur p-2 shadow-xl">
             <LayerToggle
-              label="Flood-hazard zones"
+              label={t("intel.floodHazardZones")}
               checked={zonesVisible}
               onChange={() => setZonesVisible((v) => !v)}
             />
             <LayerToggle
-              label="Place labels"
+              label={t("intel.placeLabels")}
               checked={labelsVisible}
               onChange={() => setLabelsVisible((v) => !v)}
             />
             <p className="mt-1.5 px-1 text-[10px] text-slate-500 leading-snug">
-              Satellite basemap and attribution stay on. Only layers with data
-              are listed.
+              {t("intel.layersNote")}
             </p>
           </div>
         )}
@@ -274,11 +275,11 @@ export default function ExplorePage() {
 
       <button
         onClick={fitRegion}
-        title="Fit map to region"
+        title={t("intel.fitToRegion")}
         className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-ink-900/60 hover:border-white/25 px-2.5 py-1.5 text-[12px] text-slate-200"
       >
         <Crosshair className="h-3.5 w-3.5" />
-        {compact ? "" : "Fit"}
+        {compact ? "" : t("intel.fit")}
       </button>
 
       {!compact && (
@@ -287,19 +288,19 @@ export default function ExplorePage() {
             active={layoutMode === "balanced"}
             onClick={() => setLayoutMode("balanced")}
             icon={<LayoutGrid className="h-3.5 w-3.5" />}
-            label="Balanced"
+            label={t("intel.balanced")}
           />
           <ModeBtn
             active={layoutMode === "map"}
             onClick={() => setLayoutMode("map")}
             icon={<MapIcon className="h-3.5 w-3.5" />}
-            label="Map"
+            label={t("intel.map")}
           />
           <ModeBtn
             active={layoutMode === "analysis"}
             onClick={() => setLayoutMode("analysis")}
             icon={<BarChart3 className="h-3.5 w-3.5" />}
-            label="Analysis"
+            label={t("intel.analysis")}
           />
         </div>
       )}
@@ -314,19 +315,19 @@ export default function ExplorePage() {
             active={rightTab === "analytics"}
             onClick={() => setRightTab("analytics")}
             icon={<BarChart3 className="h-3.5 w-3.5" />}
-            label="Analytics"
+            label={t("intel.analytics")}
           />
           <TabBtn
             active={rightTab === "copilot"}
             onClick={() => setRightTab("copilot")}
             icon={<Sparkles className="h-3.5 w-3.5" />}
-            label="Gemini"
+            label={t("intel.gemini")}
           />
         </div>
         {rightTab === "copilot" && (
           <button
             onClick={() => setCopilotExpanded((v) => !v)}
-            title={copilotExpanded ? "Collapse" : "Expand"}
+            title={copilotExpanded ? t("intel.collapse") : t("intel.expand")}
             className="ml-auto grid place-items-center h-7 w-7 rounded-lg border border-white/10 bg-ink-900/60 hover:border-white/25 text-slate-300"
           >
             <Maximize2 className="h-3.5 w-3.5" />
@@ -441,25 +442,25 @@ export default function ExplorePage() {
           active={mobileTab === "map"}
           onClick={() => setMobileTab("map")}
           icon={<MapIcon className="h-4 w-4" />}
-          label="Map"
+          label={t("intel.nav.map")}
         />
         <MobileNav
           active={mobileTab === "situation"}
           onClick={() => setMobileTab("situation")}
           icon={<LayoutGrid className="h-4 w-4" />}
-          label="Zones"
+          label={t("intel.nav.zones")}
         />
         <MobileNav
           active={mobileTab === "intel"}
           onClick={() => setMobileTab("intel")}
           icon={<BarChart3 className="h-4 w-4" />}
-          label="Intel"
+          label={t("intel.nav.intel")}
         />
         <MobileNav
           active={mobileTab === "copilot"}
           onClick={() => setMobileTab("copilot")}
           icon={<Sparkles className="h-4 w-4" />}
-          label="Gemini"
+          label={t("intel.nav.gemini")}
         />
       </nav>
     </div>
@@ -575,11 +576,12 @@ function Legend({
   open: boolean;
   onToggle: () => void;
 }) {
+  const { t } = useTranslation();
   const items = [
-    { c: "#3b82f6", l: "Low" },
-    { c: "#eab308", l: "Moderate" },
-    { c: "#f97316", l: "High" },
-    { c: "#ef4444", l: "Severe" },
+    { c: "#3b82f6", l: t("risk.low") },
+    { c: "#eab308", l: t("risk.medium") },
+    { c: "#f97316", l: t("risk.high") },
+    { c: "#ef4444", l: t("risk.severe") },
   ];
   return (
     <div className="absolute bottom-4 left-4">
@@ -587,13 +589,13 @@ function Legend({
         <div className="glass rounded-xl px-3 py-2.5">
           <div className="flex items-center justify-between gap-6 mb-1.5">
             <p className="text-[10px] uppercase tracking-wider text-slate-500">
-              Flood-prone confidence
+              {t("intel.legendTitle")}
             </p>
             <button
               onClick={onToggle}
               className="text-slate-500 hover:text-slate-300 text-[10px]"
             >
-              hide
+              {t("actions.hide")}
             </button>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -614,7 +616,7 @@ function Legend({
           className="glass rounded-lg px-2.5 py-1.5 text-[10px] text-slate-300 inline-flex items-center gap-1"
         >
           <Layers className="h-3 w-3" />
-          Legend
+          {t("intel.legend")}
         </button>
       )}
     </div>

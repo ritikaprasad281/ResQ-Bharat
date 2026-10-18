@@ -30,6 +30,11 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 _RAINFALL_TTL_SEC = 600.0
 _rainfall_cache = TTLCache()
 
+# Last successful rainfall per rounded location, kept beyond the TTL so a
+# transient Open-Meteo outage can be served as (flagged) stale data instead of
+# failing the whole risk/forecast request.
+_rainfall_last_good: dict[tuple[float, float], dict] = {}
+
 # Rainfall (mm) that saturates each sub-score.
 ANTECEDENT_SATURATION = 150.0
 FORECAST_SATURATION = 250.0
@@ -109,20 +114,29 @@ def _rainfall_fetch(lat: float, lon: float) -> dict:
         "forecast_days": 7,
         "timezone": "auto",
     }
-    # Open-Meteo occasionally returns a transient 5xx; retry a few times.
-    last_exc: Exception | None = None
-    for attempt in range(3):
+    key = (round(lat, 4), round(lon, 4))
+    # Open-Meteo's free tier intermittently returns a transient 5xx/429 during
+    # demand spikes; retry with exponential backoff before degrading.
+    data: dict | None = None
+    for attempt in range(4):
         try:
             with httpx.Client(timeout=20) as client:
                 resp = client.get(OPEN_METEO_URL, params=params)
                 resp.raise_for_status()
                 data = resp.json()
             break
-        except httpx.HTTPError as exc:
-            last_exc = exc
-            if attempt == 2:
-                raise
-            time.sleep(1.0 * (attempt + 1))
+        except httpx.HTTPError:
+            if attempt < 3:
+                time.sleep(min(2 ** attempt, 6))
+    if data is None:
+        # Upstream still unavailable after retries. Prefer the last good reading
+        # for this location (flagged stale); otherwise degrade to an explicit
+        # "unavailable" payload so /risk and /forecast return honest, partial
+        # data instead of HTTP 500.
+        stale = _rainfall_last_good.get(key)
+        if stale is not None:
+            return {**stale, "stale": True}
+        return _rainfall_unavailable()
     daily = data.get("daily", {})
     dates = daily.get("time", [])
     raw = daily.get("precipitation_sum", []) or []
@@ -133,7 +147,7 @@ def _rainfall_fetch(lat: float, lon: float) -> dict:
     # First 3 entries are past days; remainder is the forecast.
     past, past_present = precip[:3], present[:3]
     forecast, forecast_present = precip[3:], present[3:]
-    return {
+    result = {
         "dates": dates,
         "daily_mm": precip,
         "antecedent_3d_mm": round(sum(past), 1),
@@ -144,6 +158,30 @@ def _rainfall_fetch(lat: float, lon: float) -> dict:
         "forecast_complete": bool(forecast_present) and all(forecast_present),
         "days_available": sum(present),
         "days_expected": 10,
+        "available": True,
+        "stale": False,
+    }
+    _rainfall_last_good[key] = result
+    return result
+
+
+def _rainfall_unavailable() -> dict:
+    """Honest zero-filled rainfall used when Open-Meteo is unreachable and no
+    prior reading exists, so risk/forecast degrade gracefully (and flag the gap)
+    rather than failing outright."""
+    return {
+        "dates": [],
+        "daily_mm": [],
+        "antecedent_3d_mm": 0.0,
+        "forecast_3d_mm": 0.0,
+        "forecast_7d_mm": 0.0,
+        "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "antecedent_complete": False,
+        "forecast_complete": False,
+        "days_available": 0,
+        "days_expected": 10,
+        "available": False,
+        "stale": False,
     }
 
 
@@ -218,6 +256,8 @@ def compute_live_risk(aoi: Aoi) -> dict:
         "methodology": RISK_METHODOLOGY,
         "data_quality": {
             "rainfall_complete": rainfall_complete,
+            "rainfall_available": bool(rain.get("available", True)),
+            "rainfall_stale": bool(rain.get("stale", False)),
             "days_available": rain.get("days_available"),
             "days_expected": rain.get("days_expected"),
         },
